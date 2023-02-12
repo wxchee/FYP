@@ -1,6 +1,6 @@
 import socket
 from config import SERVER_ADDR_PORT, BUFFER_SIZE
-
+from global_vars import pitch, roll, yaw
 
 serverMsg = 'Hello from server'
 
@@ -14,8 +14,8 @@ print('UDP Server up and listening')
 
 while(True):
   clientMsg, clientAddr = UDPServerSocket.recvfrom(BUFFER_SIZE)
-  x, y, z = clientMsg.decode().split(' ')
-  print('Sensor[{}]: {} {} {}'.format(clientAddr, x, y, z))
+  pitch, roll, yaw = clientMsg.decode().split(' ')
+
+  print('Sensor[{}]: {} {} {}'.format(clientAddr, pitch, roll, yaw))
 
   UDPServerSocket.sendto(bytesToSend, clientAddr)
-  

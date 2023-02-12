@@ -11,10 +11,16 @@ UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 while (True):
 	acc = sense.get_accelerometer_raw()
-	x = round(acc['x'], 4)
-	y = round(acc['y'], 4)
-	z = round(acc['z'], 4)
-	accMsg = '{} {} {}'.format(x, y, z)
+	orien = sense.get_orientation()
+	pitch = round(orien['pitch'])
+	roll = round(orien['roll'])
+	yaw = round(orien['yaw'])
+
+	# x = round(acc['x'], 4)
+	# y = round(acc['y'], 4)
+	# z = round(acc['z'], 4)
+	# accMsg = '{} {} {}'.format(x, y, z)
+	accMsg = '{} {} {}'.format(pitch, roll, yaw)
 	data = accMsg.encode('UTF-8')
 	UDPClientSocket.sendto(data, SERVER_ADDR_PORT)
 	
