@@ -1,21 +1,26 @@
-import socket
-from config import SERVER_ADDR_PORT, BUFFER_SIZE
-from global_vars import pitch, roll, yaw
+from sensor import Sensor
+import vars
+from musicgen import MusicGen
+import threading
 
-serverMsg = 'Hello from server'
+class MusicalBall:
+  def __init__(self):
+    vars.sensor = Sensor()
+    self.music = MusicGen()
 
-bytesToSend = str.encode(serverMsg)
+  def start(self):
+    print('start musical ball')
+    
+    thread_sensor = threading.Thread(target=vars.sensor.run)
+    thread_music = threading.Thread(target=self.music.run)
 
-UDPServerSocket =  socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    thread_sensor.start()
+    thread_music.start()
 
-UDPServerSocket.bind(SERVER_ADDR_PORT)
+    thread_sensor.join()
+    thread_music.join()
 
-print('UDP Server up and listening')
 
-while(True):
-  clientMsg, clientAddr = UDPServerSocket.recvfrom(BUFFER_SIZE)
-  pitch, roll, yaw = clientMsg.decode().split(' ')
-
-  print('Sensor[{}]: {} {} {}'.format(clientAddr, pitch, roll, yaw))
-
-  UDPServerSocket.sendto(bytesToSend, clientAddr)
+if __name__ == '__main__':
+  mball = MusicalBall()
+  mball.start()

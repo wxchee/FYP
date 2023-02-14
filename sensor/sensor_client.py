@@ -2,7 +2,7 @@ import socket
 import sys
 sys.path.append('../')
 # from time import sleep
-from config import SERVER_ADDR_PORT, BUFFER_SIZE
+from const import SERVER_ADDR_PORT, BUFFER_SIZE
 
 from sense_hat import SenseHat
 sense = SenseHat()
@@ -16,15 +16,9 @@ while (True):
 	roll = round(orien['roll'])
 	yaw = round(orien['yaw'])
 
-	# x = round(acc['x'], 4)
-	# y = round(acc['y'], 4)
-	# z = round(acc['z'], 4)
-	# accMsg = '{} {} {}'.format(x, y, z)
 	accMsg = '{} {} {}'.format(pitch, roll, yaw)
-	data = accMsg.encode('UTF-8')
-	UDPClientSocket.sendto(data, SERVER_ADDR_PORT)
+	UDPClientSocket.sendto(accMsg.encode('UTF-8'), SERVER_ADDR_PORT)
 	
 	recData, revAddr = UDPClientSocket.recvfrom(BUFFER_SIZE)
-	recMsg = recData.decode('UTF-8')
-	print('receive: {}'.format(recMsg))
+	print('receive: {}'.format(recData.decode('UTF-8')))
 	# sleep(1)
