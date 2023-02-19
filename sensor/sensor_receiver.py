@@ -8,9 +8,13 @@ class SensorReceiver:
 
     def run(self, set_orientation):
         print("start sensor server")
-        while True:
-            clientMsg, clientAddr = self._socket.recvfrom(BUFFER_SIZE)
-            pitch, roll, yaw = clientMsg.decode().split(' ')
-            set_orientation(pitch, roll, yaw)
-            # print('{} {} {}'.format(pitch, roll, yaw))
-            self._socket.sendto(str.encode('Received.'), clientAddr)
+        try:
+            while True:
+                clientMsg, clientAddr = self._socket.recvfrom(BUFFER_SIZE)
+                pitch, roll, yaw = clientMsg.decode().split(' ')
+                set_orientation(pitch, roll, yaw)
+                # print('{} {} {}'.format(pitch, roll, yaw))
+                self._socket.sendto(str.encode('Received.'), clientAddr)
+        except KeyboardInterrupt:
+            print("close sensor receiver socket.")
+            self._socket.close()

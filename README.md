@@ -1,6 +1,6 @@
 # Rolling Musical Ball
 
-A embedded system equiped with IMU sensor reads orientation data in 3-dimensional space.
+An embedded system equiped with IMU sensor reads orientation data in 3-dimensional space.
 By selecting different orientation data as unique input, with each represents a unique musical note, the embedded system can function as a musical instrument.
 
 ## Development workflow
