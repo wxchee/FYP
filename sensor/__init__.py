@@ -3,6 +3,8 @@ class Sensor:
         self._pitch = 0
         self._roll = 0
         self._yaw = 0
+        self._prevYaw = 0
+        self._dYaw = 0
         self._sense = None
         try:
             from sense_hat import SenseHat
@@ -13,6 +15,10 @@ class Sensor:
     @property
     def yaw(self):
         return self._yaw
+    
+    @property
+    def dYaw(self):
+        return self._dYaw
 
     def run(self):
             if self._sense != None:
@@ -35,5 +41,8 @@ class Sensor:
         self._pitch = int(pitch)
         self._roll = int(roll)
         self._yaw = int(yaw)
+        
+        self._dYaw = abs(self._prevYaw - self._yaw)
+        self._prevYaw = self._yaw
 
     
