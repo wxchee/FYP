@@ -46,3 +46,4 @@ def pitch_to_frequency(pitch):
 def decibels_to_amplitude_ratio(decibels):
     '''The ratio between two amplitudes given a decibel change'''
     return 2**(decibels / 10)
+    # return 10**(decibels/20)

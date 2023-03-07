@@ -51,3 +51,6 @@ class SineWave:
     def set_volume(self, volume):
         '''Sets the goal volume (in decibels, relative to medium volume) of the sinewave'''
         self.sinewave_generator.set_decibels(volume)
+
+    def set_amplitude(self, amp):
+        self.sinewave_generator.set_amplitude(amp)

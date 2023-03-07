@@ -1,0 +1,58 @@
+import numpy as np
+from musicgen.mconst import C_Major, fs
+from enum import Enum
+
+class STREAM_STATE(Enum):
+    IDLE = 0
+    PRECROSSFADE = 1
+    CROSSFADE = 2
+    PREFADEOUT = 3
+    FADEOUT = 4
+
+NOTES = np.array([
+    261.63,     # C     
+    277.187,    # C#
+    293.67,     # D
+    311.132,    # D#
+    329.633,    # E
+    349.234,    # F
+    370.001,    # F#
+    392.002,    # G
+    415.312,    # G#
+    440.007,    # A
+    466.172,    # A#
+    493.892,    # B,
+    523.25      # C
+])
+
+C_Major = NOTES[[0, 2, 4, 5, 7, 9, 11, 12]]
+
+fs = 44100
+
+default_duration = 0.5
+
+# times = np.linspace(0, default_duration, int(default_duration * fs), endpoint=False)
+
+def get_time_array(start_frame, frames) -> np.array:
+    return np.linspace(start_frame/fs, (start_frame + frames)/fs, frames, endpoint=False)
+
+def get_fadeout_env(duration) -> np.array:
+    return np.linspace(1, 0, int(duration * fs))
+
+def get_fadeto_env(frames) -> np.array:
+    # fade_frames = int(duration * fs)
+    fade_frames = int (0.5 * frames)
+    return np.concatenate((
+        # np.linspace(0, 1, fade_frames),
+        np.ones(len(frames) - fade_frames),
+        np.linspace(1, 0, fade_frames)
+    )
+    )
+
+def get_wave_by_freq(freq=C_Major[0], amp=1, times=0) -> np.array:
+    # dt = 1 if len(times) < 2 else times[1] - times[0]
+    # print(np.full((len(times),), freq))
+    # phase_array = np.cumsum(np.full((len(times),), freq) * dt)
+    # return amp * np.sin(2 * np.pi * phase_array)
+    return amp * np.cos(2*np.pi*freq*times)
+# .astype(np.float32)
