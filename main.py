@@ -13,13 +13,12 @@ class MusicalBall:
     
     thread_sensor = threading.Thread(target=vars.sensor.run)
     thread_music = threading.Thread(target=self.music.run)
-
+    
     thread_sensor.start()
     thread_music.start()
 
     thread_sensor.join()
     thread_music.join()
-
 
 if __name__ == '__main__':
   mball = MusicalBall()

@@ -4,13 +4,10 @@ from enum import Enum
 
 class STREAM_STATE(Enum):
     IDLE = 0
-    PRECROSSFADE = 1
-    CROSSFADE = 2
-    PREFADEOUT = 3
-    FADEOUT = 4
+    CROSSFADE = 1
 
 NOTES = np.array([
-    261.63,     # C     
+    261.63,     # C4     
     277.187,    # C#
     293.67,     # D
     311.132,    # D#
@@ -19,11 +16,12 @@ NOTES = np.array([
     370.001,    # F#
     392.002,    # G
     415.312,    # G#
-    440.007,    # A
+    440,    # A
     466.172,    # A#
     493.892,    # B,
-    523.25      # C
+    523.25      # C5
 ])
+
 
 C_Major = NOTES[[0, 2, 4, 5, 7, 9, 11, 12]]
 
@@ -39,12 +37,12 @@ def get_time_array(start_frame, frames) -> np.array:
 def get_fadeout_env(duration) -> np.array:
     return np.linspace(1, 0, int(duration * fs))
 
-def get_fadeto_env(frames) -> np.array:
+def get_crossfade_filter(frames) -> np.array:
     # fade_frames = int(duration * fs)
     fade_frames = int (0.5 * frames)
     return np.concatenate((
         # np.linspace(0, 1, fade_frames),
-        np.ones(len(frames) - fade_frames),
+        np.ones(frames - fade_frames),
         np.linspace(1, 0, fade_frames)
     )
     )
