@@ -29,8 +29,6 @@ fs = 44100
 
 default_duration = 0.5
 
-# times = np.linspace(0, default_duration, int(default_duration * fs), endpoint=False)
-
 def get_time_array(start_frame, frames) -> np.array:
     return np.linspace(start_frame/fs, (start_frame + frames)/fs, frames, endpoint=False)
 
@@ -52,5 +50,4 @@ def get_wave_by_freq(freq=C_Major[0], amp=1, times=0) -> np.array:
     # print(np.full((len(times),), freq))
     # phase_array = np.cumsum(np.full((len(times),), freq) * dt)
     # return amp * np.sin(2 * np.pi * phase_array)
-    return amp * np.cos(2*np.pi*freq*times)
-# .astype(np.float32)
+    return amp * np.sin(2*np.pi*freq*times)

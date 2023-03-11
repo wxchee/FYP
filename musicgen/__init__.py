@@ -15,7 +15,10 @@ dt = 0
 isPlaying = 0
 yawCountDown = 0
 
-sample_chunk = 500 # ~11ms worth of frame
+
+# approx. stream requested frame size in rpi: 512
+# approx. stream requested frame size in laptop: 400
+sample_chunk = 600 # ~13.6ms worth of frame
 
 class MusicGen:
     def __init__(self):
@@ -53,32 +56,36 @@ class MusicGen:
             print('status')
             print(status, sys.stderr)
 
-        if self.state == STREAM_STATE.CROSSFADE:
+        # CROSSFADE state
+        if self.state == STREAM_STATE.CROSSFADE: 
             if self.phase + frames > self.cross_wavelengh: # reach the end of the wave
                 diff = self.phase + frames - self.cross_wavelengh
+                self.goal_wave, self.goal_wavelength = self.get_goal(self.goal_freq)
                 new_wave = np.concatenate((self.cross_wave[self.phase:self.cross_wavelengh], self.goal_wave[:diff]))
                 self.freq, self.wave, self.wavelength = self.goal_freq, self.goal_wave, self.goal_wavelength
-
                 self.state = self.next_state  = STREAM_STATE.IDLE
-
                 self.phase = diff
             else:
                 new_wave = self.cross_wave[self.phase:(self.phase + frames)]
                 self.phase += frames
         
-        else: # IDLE state
+        # IDLE state
+        else: 
             if self.phase + frames > self.wavelength: # reach the end of the wave
                 diff = self.phase + frames - self.wavelength
-                if self.next_state == STREAM_STATE.CROSSFADE:
+                if self.goal_freq != self.freq:
+                    self.cross_wave, self.cross_wavelengh = self.get_cross_fade(self.freq, self.goal_freq)
                     new_wave = np.concatenate((self.wave[self.phase:self.wavelength], self.cross_wave[:diff]))
+                    self.state = STREAM_STATE.CROSSFADE
                 else:
                     new_wave = np.concatenate((self.wave[self.phase:self.wavelength], self.wave[:diff]))
-                self.state = self.next_state
+
                 self.phase = diff
-                
             else:
                 new_wave = self.wave[self.phase:(self.phase + frames)]
                 self.phase += frames
+
+
 
         
         outdata[:] = new_wave.reshape(-1,1)
@@ -88,40 +95,38 @@ class MusicGen:
                 self.outstream.start()
                 i = 0
                 while True:
-                    self.set_freq(C_Major[i])
-                    sleep(0.1)
-                    i = (i + 1) % 8
+                    # self.set_freq(C_Major[i])
+                    # sleep(0.1)
+                    # i = (i + 1) % 8
 
                     #-------- C major scale --------#
-                    # if (vars.sensor.yaw >= 0 and vars.sensor.yaw < 180):
-                    #     i = math.floor(vars.sensor.yaw / 25.7)
-                    # else:
-                    #     i = 7 - math.floor((vars.sensor.yaw - 180) / 25.7)
+                    if (vars.sensor.yaw >= 0 and vars.sensor.yaw < 180):
+                        i = math.floor(vars.sensor.yaw / 25.7)
+                    else:
+                        i = 7 - math.floor((vars.sensor.yaw - 180) / 25.7)
                     # print('yaw:{} note:{}'.format(vars.sensor.yaw, i))
-                    # self.set_freq(tools.C_Major[i])
-                    # sleep(0.05)
+                    self.set_freq(C_Major[i])
+                    sleep(0.1)
+
             except KeyboardInterrupt:
                 print("stop music thread.")
                 
     
     def set_freq(self, new_freq):
-        global sample_chunk
-        res = sample_chunk
-        cycle = round(res * new_freq / tools.fs)
         self.goal_freq = new_freq
-        self.goal_wavelength = round(tools.fs / new_freq * cycle)
-        new_time_array = tools.get_time_array(0, self.goal_wavelength)
-        self.goal_wave = tools.get_wave_by_freq(new_freq, self.amplitude, new_time_array)
 
-        self.cross_wave, self.cross_wavelengh = self.get_cross_fade(self.freq, self.goal_freq)
+    def get_goal(self, goal_freq):
+        global sample_chunk
+        cycle = round(sample_chunk * goal_freq / tools.fs)
+        goal_wavelength = round(tools.fs / goal_freq * cycle)
+        new_time_array = tools.get_time_array(0, goal_wavelength)
+        goal_wave = tools.get_wave_by_freq(goal_freq, self.amplitude, new_time_array)
 
-        self.next_state = STREAM_STATE.CROSSFADE
-
+        return goal_wave, goal_wavelength
 
     def get_cross_fade(self, prev_freq, next_freq):
         global sample_chunk
-        res = sample_chunk
-        cycle = round(res * next_freq / tools.fs)
+        cycle = round(sample_chunk * 10 * next_freq / tools.fs)
         cross_wavelengh = round(tools.fs / next_freq * cycle)
 
         time_array = tools.get_time_array(0, cross_wavelengh)
