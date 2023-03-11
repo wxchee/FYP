@@ -1,11 +1,11 @@
 import numpy as np
-from musicgen.mconst import C_Major, fs
 from enum import Enum
 
 class STREAM_STATE(Enum):
     IDLE = 0
     CROSSFADE = 1
 
+# NOTES = [261.63 * 2**(i/12) for i in range(13)]
 NOTES = np.array([
     261.63,     # C4     
     277.187,    # C#
