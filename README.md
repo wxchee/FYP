@@ -10,8 +10,8 @@ source <USERPROFILE>/Documents/fyp/bin/scripts.sh
 ```
 
 <br>
-Generate a host's IP and manually provide client IP for later reference.
-Make sure to do this everytime the local dev environment connect to a different network.
+Update host's IP and manually provide client IP which will be used for deploy command.<br>
+Note: Make sure to do this everytime the local dev environment connected to a different network.
 
 ```
 fyp init <RPi IP>
@@ -24,7 +24,7 @@ fyp deploy
 ```
 <br>
 
-Run the program under the local dev environment
+Run the program under the local dev environment. 
 ```
 fyp run
 ```

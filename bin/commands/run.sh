@@ -2,4 +2,4 @@
 
 echo "run local dev"
 
-python3 ./main.py
+python3 /home/wxchee/fyp/main.py
