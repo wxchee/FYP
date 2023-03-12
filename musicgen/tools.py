@@ -50,4 +50,4 @@ def get_wave_by_freq(freq=C_Major[0], amp=1, times=0) -> np.array:
     # print(np.full((len(times),), freq))
     # phase_array = np.cumsum(np.full((len(times),), freq) * dt)
     # return amp * np.sin(2 * np.pi * phase_array)
-    return amp * np.sin(2*np.pi*freq*times)
+    return amp * np.cos(2*np.pi*freq*times)

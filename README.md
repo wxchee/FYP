@@ -6,12 +6,12 @@ By selecting different orientation data as unique input, with each represents a 
 ## Development workflow
 Inlcude bin/scripts.sh under .bashsrc to initiate helper command.
 ```
-source <USERPROFILE>/Documents/fyp/bin/scripts.sh
+source <dir to the project>/fyp/bin/scripts.sh
 ```
 
 <br>
 Update host's IP and manually provide client IP which will be used for deploy command.<br>
-Note: Make sure to do this everytime the local dev environment connected to a different network.
+Note: Make sure to do this everytime the local dev environment connected to a different network, or when RPi's IP is changed.
 
 ```
 fyp init <RPi IP>
