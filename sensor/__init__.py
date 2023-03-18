@@ -1,10 +1,11 @@
+
+
 class Sensor:
     def __init__(self):
         self._pitch = 0
         self._roll = 0
         self._yaw = 0
-        self._prevYaw = 0
-        self._dYaw = 0
+        self._ds = 0
         self._sense = None
         try:
             from sense_hat import SenseHat
@@ -26,8 +27,8 @@ class Sensor:
         return self._roll
     
     @property
-    def dYaw(self):
-        return self._dYaw
+    def ds(self):
+        return self._ds
 
     def run(self):
             if self._sense != None:
@@ -37,6 +38,8 @@ class Sensor:
                         round(orien['pitch']),
                         round(orien['roll']),
                         round(orien['yaw']))
+                    
+                    self.update_ds()
             else:
                 from sensor.sensor_receiver import SensorReceiver
                 sensorReceiver = SensorReceiver()
@@ -47,11 +50,20 @@ class Sensor:
         return (self._pitch, self._roll, self._yaw)
 
     def set_orientation(self, pitch, roll, yaw):
-        self._pitch = int(pitch)
-        self._roll = int(roll)
-        self._yaw = int(yaw)
-        
-        self._dYaw = abs(self._prevYaw - self._yaw)
-        self._prevYaw = self._yaw
+        self._pitch = int(pitch) % 360
+        self._roll = int(roll) % 360
+        self._yaw = int(yaw) % 360
+    
+    def update_ds(self):
+        gyro = self._sense.get_gyroscope_raw()
+
+        gds = (abs(gyro['x']) + abs(gyro['y']) + abs(gyro['z'])) / 21 # even out three axis, empirical max gyro change ~7 thus 3*7=21
+        gds = round(min(gds, 1), 3)
+
+        acc = self._sense.get_accelerometer_raw()
+        ads = (abs(acc['x']) + abs(acc['y']) + abs(acc['z'])) / 3.6 # even out three axis, empirical max acc change ~1.1 thus 3*1.2
+        ads = round(min(ads, 1), 3)
+        # print(gds, ads)
+        self._ds = round((gds + ads) / 2, 3)
 
     

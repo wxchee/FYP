@@ -100,33 +100,19 @@ class MusicGen:
                 i = 0
                 y = 0
                 r = 0
-                while True:
-                    # self.set_freq(C_Major[i])
-                    # self.set_amp(i/7)
-                    # sleep(0.2)
-                    # i = (i + 1) % 8
-                    # r = 359
-                    # y = 359
-                    # r = (r + 10) % 360   
-                    r = vars.sensor.roll % 360
-                    j = math.floor(r / 25.7)
-                    j = 7 - (j % 7) if j >= 7 else j
+                while True: 
+                    # r = vars.sensor.roll
+                    # j = math.floor(r / 25.7)
+                    # j = 7 - (j % 7) if j >= 7 else j
 
                     # y = (y + 10) % 360
-                    y = vars.sensor.yaw % 360
+                    y = vars.sensor.yaw
                     i = math.floor(y / 25.7)
                     i = 7 - (i % 7) if i >= 7 else i
-                    i = i + j
-                    i = 7 - (i % 7) if i >= 7 else i 
-                    print(y, i, r, j)
-                    # i = math.floor((vars.sensor.yaw) / 25.7)
+                    # i = i + j
+                    # i = 7 - (i % 7) if i >= 7 else i 
+                    # print(vars.sensor.dYaw)
                     
-                    # #-------- C major scale --------#
-                    # if (vars.sensor.yaw >= 0 and vars.sensor.yaw < 180):
-                    #     i = math.floor(vars.sensor.yaw / 25.7)
-                    # else:
-                    #     i = 7 - math.floor((vars.sensor.yaw - 180) / 25.7)
-                    # print('yaw:{} note:{}'.format(vars.sensor.yaw, i))
                     self.set_freq(C_Major[i])
                     sleep(0.1)
 
