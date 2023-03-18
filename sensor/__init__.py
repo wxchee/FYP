@@ -9,12 +9,21 @@ class Sensor:
         try:
             from sense_hat import SenseHat
             self._sense = SenseHat()
+            self._sense.set_imu_config(False, True, True)
         except ModuleNotFoundError:
             print("SenseHat module not found, fallback to fetching remote SenseHat data.")
 
     @property
     def yaw(self):
         return self._yaw
+    
+    @property 
+    def pitch(self):
+        return self._pitch
+    
+    @property 
+    def roll(self):
+        return self._roll
     
     @property
     def dYaw(self):

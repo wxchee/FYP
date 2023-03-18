@@ -11,7 +11,7 @@ UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 try:
 	while (True):
-		acc = sense.get_accelerometer_raw()
+		# acc = sense.get_accelerometer_raw()
 		orien = sense.get_orientation()
 		pitch = round(orien['pitch'])
 		roll = round(orien['roll'])
