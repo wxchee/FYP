@@ -1,14 +1,9 @@
-
-from time import sleep,time
-import math
 from musicgen import tools
 from musicgen.tools import C_Major, STREAM_STATE
 import sounddevice as sd
 import numpy as np
 import sys
-import vars
 
-C_major = [0, 2, 4, 5, 7, 9, 11, 12]
 
 prev_time = 0
 dt = 0
@@ -31,7 +26,7 @@ class MusicGen:
 
         self.amplitude = 1
         self.goal_amplitude = 1
-        self.amp_duration = 0.5
+        self.amp_duration = 0.25
         
         self.cross_wave = None
         self.cross_wavelengh = 0
@@ -47,7 +42,10 @@ class MusicGen:
             channels=1,
             callback= lambda *args: self._callback(*args)
         )
-        
+
+        self.outstream.start()
+        self.set_freq(C_Major[0])
+        self.set_volume(0)
         
     def _callback(self, outdata, frames, time, status):
         if (status):
@@ -91,34 +89,7 @@ class MusicGen:
 
         target_amp = amp_env.reshape(-1,1) if self.amplitude != self.goal_amplitude else self.amplitude
         outdata[:] = new_wave.reshape(-1,1) * target_amp
-        
-        
 
-    def run(self):
-            try:
-                self.outstream.start()
-                i = 0
-                y = 0
-                r = 0
-                while True: 
-                    # r = vars.sensor.roll
-                    # j = math.floor(r / 25.7)
-                    # j = 7 - (j % 7) if j >= 7 else j
-
-                    # y = (y + 10) % 360
-                    y = vars.sensor.yaw
-                    i = math.floor(y / 25.7)
-                    i = 7 - (i % 7) if i >= 7 else i
-                    # i = i + j
-                    # i = 7 - (i % 7) if i >= 7 else i 
-                    # print(vars.sensor.dYaw)
-                    
-                    self.set_freq(C_Major[i])
-                    sleep(0.1)
-
-            except KeyboardInterrupt:
-                print("stop music thread.")
-                
     
 
     def set_freq(self, new_freq):
@@ -137,7 +108,7 @@ class MusicGen:
 
 
 
-    def set_amp(self, new_amp):
+    def set_volume(self, new_amp):
         self.goal_amplitude = new_amp
 
 

@@ -1,11 +1,18 @@
 
+# from math import sqrt
+import numpy as np
 
 class Sensor:
     def __init__(self):
         self._pitch = 0
         self._roll = 0
         self._yaw = 0
-        self._ds = 0
+
+        self.rotDir = 0
+        self.rotStrength = 0 # magnitude of gyroscope(in radian) combining all three axis
+
+        self.accStrength = 0
+
         self._sense = None
         try:
             from sense_hat import SenseHat
@@ -33,13 +40,27 @@ class Sensor:
     def run(self):
             if self._sense != None:
                 while True:
-                    orien = self._sense.get_orientation()
-                    self.set_orientation(
-                        round(orien['pitch']),
-                        round(orien['roll']),
-                        round(orien['yaw']))
+                    # orien = self._sense.get_orientation()
+                    # self.set_orientation(
+                    #     round(orien['pitch']),
+                    #     round(orien['roll']),
+                    #     round(orien['yaw']))
                     
-                    self.update_ds()
+                    # self.update_ds()
+
+                    # update gyroscope value changed /second
+                    gX, gY, gZ = self._sense.get_gyroscope_raw().values()
+                    maxI = np.argmax([abs(gX), abs(gY), abs(gZ)])
+                    self.rotDir = np.sign([gX,gY,gZ][maxI])
+                    self.rotStrength = (gX * gX + gY * gY + gZ * gZ) ** (1/3)
+
+
+                    aX, aY, aZ = self._sense.get_accelerometer_raw().values()
+                    self.accStrength = (aX * aX + aY * aY + aZ * aZ) ** (1/3)
+                    
+                    gds = (abs(gX) + abs(gY) + abs(gX)) / 21 # even out three axis, empirical max gyro change ~7 thus 3*7=21
+                    gds = round(min(gds, 1), 3)
+
             else:
                 from sensor.sensor_receiver import SensorReceiver
                 sensorReceiver = SensorReceiver()
@@ -54,16 +75,4 @@ class Sensor:
         self._roll = int(roll) % 360
         self._yaw = int(yaw) % 360
     
-    def update_ds(self):
-        gyro = self._sense.get_gyroscope_raw()
-
-        gds = (abs(gyro['x']) + abs(gyro['y']) + abs(gyro['z'])) / 21 # even out three axis, empirical max gyro change ~7 thus 3*7=21
-        gds = round(min(gds, 1), 3)
-
-        acc = self._sense.get_accelerometer_raw()
-        ads = (abs(acc['x']) + abs(acc['y']) + abs(acc['z'])) / 3.6 # even out three axis, empirical max acc change ~1.1 thus 3*1.2
-        ads = round(min(ads, 1), 3)
-        # print(gds, ads)
-        self._ds = round((gds + ads) / 2, 3)
-
     
