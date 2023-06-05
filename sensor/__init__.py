@@ -17,8 +17,7 @@ class Sensor:
             from sense_hat import SenseHat
             self._sense = SenseHat()
             self._sense.low_light = True
-            # self._sense.set_imu_config(False, True, True)
-            # self._sense.set_imu_config(False, True, True)
+            self._sense.set_imu_config(False, True, True)
         except ModuleNotFoundError:
             print("SenseHat module not found, fallback to fetching remote SenseHat data.")
 
@@ -88,20 +87,6 @@ class Sensor:
         self._roll = int(roll) % 360
         self._yaw = int(yaw) % 360
     
-    def set_pixels(self, i):
-        X = [5, 0, 0]  # Red
-        O = [0, 0, 0]
-        template = [
-        O, O, O, X, X, O, O, O,
-        O, O, X, O, O, X, O, O,
-        O, O, O, O, O, X, O, O,
-        O, O, O, O, X, O, O, O,
-        O, O, O, X, O, O, O, O,
-        O, O, O, X, O, O, O, O,
-        O, O, O, O, O, O, O, O,
-        O, O, O, X, O, O, O, O
-        ]
-        # self._sense.set_pixels(template)
     def get_dir_rot(self, gX, gY, gZ):
         direction_of_rotation_vector = [gY, -gX, 0]  # Assuming Sense HAT is mounted in landscape orientation
 

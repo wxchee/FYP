@@ -26,7 +26,7 @@ class MusicGen:
 
         self.amplitude = 1
         self.goal_amplitude = 1
-        self.amp_duration = 0.25
+        self.amp_duration = 0.15
         
         self.cross_wave = None
         self.cross_wavelengh = 0
