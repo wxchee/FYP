@@ -1,18 +1,15 @@
 import math
 import numpy as np
 from math import copysign, sqrt
+from vars import rotDir, rotMag, accMag, yaw
+from time import time
+
 class Sensor:
     def __init__(self):
-        self._pitch = 0
-        self._roll = 0
-        self._yaw = 0
-
-        self.rotDir = 0
-        self.rotStrength = 0 # magnitude of gyroscope(in radian) combining all three axis
-
-        self.accStrength = 0
-
         self._sense = None
+        self._dt = 0
+        self._prevTime = 0
+
         try:
             from sense_hat import SenseHat
             self._sense = SenseHat()
@@ -21,71 +18,59 @@ class Sensor:
         except ModuleNotFoundError:
             print("SenseHat module not found, fallback to fetching remote SenseHat data.")
 
-    @property
-    def yaw(self):
-        return self._yaw
-    
-    @property 
-    def pitch(self):
-        return self._pitch
-    
-    @property 
-    def roll(self):
-        return self._roll
-    
-    @property
-    def ds(self):
-        return self._ds
-
     def run(self):
-            if self._sense != None:
-                while True:
-                    orien = self._sense.get_orientation()
-                    self.set_orientation(
-                        round(orien['pitch']),
-                        round(orien['roll']),
-                        round(orien['yaw']))
-                    
-                    # self.update_ds()
+        self._prevTime = time()
+        if self._sense != None:
+            while True:
+                gX, gY, gZ = self._sense.get_gyroscope_raw().values()
+                self.set_gyro(float(gX),float(gY),float(gZ))
 
-                    # update gyroscope value changed /second
-                    gX, gY, gZ = self._sense.get_gyroscope_raw().values()
-                    gMags = [abs(gX), abs(gY), abs(gZ)]
-                    g1, g2, s = sorted(gMags, reverse=True)
-                    i1 = gMags.index(g1)
-                    # i2 = gMags.index(g2)
-                    # maxI = np.argmax(gMags)
-                    # self.rotDir = np.sign([gX,gY,gZ][maxI])
-                    self.rotDir = copysign(1, [gX, gY, gX][i1])
-                    self.rotStrength = sqrt(g1 * g1 + g2 * g2)
-                    # self.rotStrength = (gX * gX + gY * gY + gZ * gZ) ** (1/3)
-                    # print(i1,":",g1,"|", i2, ":",g2, "   ", gX, gY, gZ)
-                    # print(self.rotDir, self.rotStrength)
-                    # if (self.rotStrength > 2):
-                    #     print(i1, self.rotDir, self.rotStrength)
-                    #     print('x', gX, 'y', gY, 'z', gZ)
+                # orien = self._sense.get_orientation()
+                # self.set_orientation(orien['pitch'], orien['roll'], orien['yaw'])
+                
+                aX, aY, aZ = self._sense.get_accelerometer_raw().values()
+                self.set_acc(aX, aY, aZ)
 
-                    # print(self.get_dir_rot(gX, gY, gZ))
-
-                    aX, aY, aZ = self._sense.get_accelerometer_raw().values()
-                    self.accStrength = (aX * aX + aY * aY + aZ * aZ) ** (1/3)
-                    
-                    gds = (abs(gX) + abs(gY) + abs(gX)) / 21 # even out three axis, empirical max gyro change ~7 thus 3*7=21
-                    gds = round(min(gds, 1), 3)
-
-            else:
-                from sensor.sensor_receiver import SensorReceiver
-                sensorReceiver = SensorReceiver()
-                sensorReceiver.run(self.set_orientation)
+        else:
+            from sensor.sensor_receiver import SensorReceiver
+            sensorReceiver = SensorReceiver()
+            sensorReceiver.run(self.set_gyro, self.set_acc)
 
 
-    def get_orientation(self):
-        return (self._pitch, self._roll, self._yaw)
+    def set_gyro(self, gX, gY, gZ):
+        global yaw
+        print('dt', self._dt)
+        newZ = yaw.value + gZ
+        if (newZ < 0):
+            yaw.value = newZ
+        elif newZ > 360:
+            yaw.value = newZ - 360
+        else:
+            yaw.value = newZ
+        # yaw.value = (360 + newZ) if newZ < 0 else newZ % 360
+        gMags = [abs(gX), abs(gY), abs(gZ)]
+        g1, g2, s = sorted(gMags, reverse=True)
+        i1 = gMags.index(g1)
 
-    def set_orientation(self, pitch, roll, yaw):
-        self._pitch = int(pitch) % 360
-        self._roll = int(roll) % 360
-        self._yaw = int(yaw) % 360
+        rotDir.value = int(copysign(1, [gX, gY, gX][i1]))
+        rotMag.value = sqrt(g1 * g1 + g2 * g2)
+
+        self._dt = time() - self._prevTime
+        self._prevTime = time()
+    
+    def set_acc(self, aX, aY, aZ):
+        accMag.value = (aX * aX + aY * aY + aZ * aZ) ** (1/3)
+
+    # def set_orientation(self, p, r, y):
+    #     pitch.value = int(p) % 360
+    #     roll.value = int(r) % 360
+    #     yaw.value = int(y) % 360
+
+        # update gyroscope value changed /second
+        # gX, gY, gZ = self._sense.get_gyroscope_raw().values()
+
+        # aX, aY, aZ = self._sense.get_accelerometer_raw().values()
+        
     
     def get_dir_rot(self, gX, gY, gZ):
         direction_of_rotation_vector = [gY, -gX, 0]  # Assuming Sense HAT is mounted in landscape orientation
