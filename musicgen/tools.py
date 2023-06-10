@@ -7,7 +7,7 @@ class STREAM_STATE(Enum):
 
 # NOTES = [261.63 * 2**(i/12) for i in range(13)]
 
-NOTES = np.array([
+NOTES = np.array([ # 24
     261.63,     # C4     
     277.187,    # C#
     293.67,     # D
@@ -39,8 +39,8 @@ NOTES = np.array([
 C_Major = NOTES[[0, 2, 4, 5, 7, 9, 11, 12]]
 
 PATTERN1 = {
-    "NOTES": [12, 7, 9, 4, 5, 0, 5, 7],
-    "pattern": [1, 5, 8, 5, 10, 5, 8, 5]
+    "notes": [12, 7, 9, 4, 5, 0, 5, 7],
+    "pattern": [0, 4, 7, 4, 9, 4, 7, 4]
 }
 
 fs = 44100

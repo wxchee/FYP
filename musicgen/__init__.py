@@ -3,7 +3,7 @@ from musicgen.tools import C_Major, STREAM_STATE
 import sounddevice as sd
 import numpy as np
 import sys
-
+from shared import goal_amplitude, goal_freq
 
 prev_time = 0
 dt = 0
@@ -22,10 +22,10 @@ class MusicGen:
         self.wave = tools.get_wave_by_freq(0, 0, np.linspace(0, 1, sample_chunk))
         self.wavelength = sample_chunk
 
-        self.goal_freq = None
+        # goal_freq.value = None
 
-        self.amplitude = 1
-        self.goal_amplitude = 1
+        self.amplitude = 0
+        # goal_amplitude.value = 0
         self.amp_duration = 0.15
         
         self.cross_wave = None
@@ -43,9 +43,11 @@ class MusicGen:
             callback= lambda *args: self._callback(*args)
         )
 
-        self.set_freq(C_Major[0])
-        self.set_volume(1)
+        
         self.outstream.start()
+        goal_freq.value = C_Major[0]
+        # self.set_freq(C_Major[0])
+        # self.set_volume(1)
 
         
     def _callback(self, outdata, frames, time, status):
@@ -56,9 +58,9 @@ class MusicGen:
         if self.state == STREAM_STATE.CROSSFADE: 
             if self.phase + frames > self.cross_wavelengh: # reach the end of the wave
                 diff = self.phase + frames - self.cross_wavelengh
-                goal_wave, goal_wavelength = self.get_goal(self.goal_freq)
+                goal_wave, goal_wavelength = self.get_goal(goal_freq.value)
                 new_wave = np.concatenate((self.cross_wave[self.phase:self.cross_wavelengh], goal_wave[:diff]))
-                self.freq, self.wave, self.wavelength = self.goal_freq, goal_wave, goal_wavelength
+                self.freq, self.wave, self.wavelength = goal_freq.value, goal_wave, goal_wavelength
                 self.state = self.next_state  = STREAM_STATE.IDLE
                 self.phase = diff
             else:
@@ -69,8 +71,8 @@ class MusicGen:
         else: 
             if self.phase + frames > self.wavelength: # reach the end of the wave
                 diff = self.phase + frames - self.wavelength
-                if self.goal_freq != self.freq:
-                    self.cross_wave, self.cross_wavelengh = self.get_cross_fade(self.freq, self.goal_freq)
+                if goal_freq.value != self.freq:
+                    self.cross_wave, self.cross_wavelengh = self.get_cross_fade(self.freq, goal_freq.value)
                     new_wave = np.concatenate((self.wave[self.phase:self.wavelength], self.cross_wave[:diff]))
                     self.state = STREAM_STATE.CROSSFADE
                 else:
@@ -83,17 +85,17 @@ class MusicGen:
         
         # handle amplitude change
         amp_env = np.ones(frames)
-        if self.amplitude != self.goal_amplitude:
+        if self.amplitude != goal_amplitude.value:
             amp_env = self.get_amp_env(self.amplitude, frames)
             self.amplitude = amp_env[-1]
 
-        target_amp = amp_env.reshape(-1,1) if self.amplitude != self.goal_amplitude else self.amplitude
+        target_amp = amp_env.reshape(-1,1) if self.amplitude != goal_amplitude.value else self.amplitude
         outdata[:] = new_wave.reshape(-1,1) * target_amp
 
-    
+        # print('on callback')
 
-    def set_freq(self, new_freq):
-        self.goal_freq = new_freq
+    # def set_freq(self, new_freq):
+    #     goal_freq.value = new_freq
 
 
 
@@ -108,13 +110,13 @@ class MusicGen:
 
 
 
-    def set_volume(self, new_amp):
-        self.goal_amplitude = new_amp
+    # def set_volume(self, new_amp):
+    #     goal_amplitude.value = new_amp
 
 
     def get_amp_env(self, start_amp, frames):
-        dir = 1 if start_amp < self.goal_amplitude else -1
-        end_amp = start_amp + (self.goal_amplitude - start_amp) * frames / (tools.fs * self.amp_duration)
+        dir = 1 if start_amp < goal_amplitude.value else -1
+        end_amp = start_amp + (goal_amplitude.value - start_amp) * frames / (tools.fs * self.amp_duration)
 
         return np.linspace(start_amp, end_amp, frames)
     

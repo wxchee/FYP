@@ -1,5 +1,4 @@
 from sensor import Sensor
-# import shared
 from musicgen import MusicGen
 from multiprocessing import Process, cpu_count
 # import threading
@@ -8,6 +7,7 @@ from control import control
 class MusicalBall:
   def __init__(self):
     self.sensor = Sensor()
+    self.mg = MusicGen()
 
   def start(self):
     print('start musical ball')
@@ -15,16 +15,17 @@ class MusicalBall:
     print('cpu count', cpu_count())
 
     process_sensor = Process(target=self.sensor.run)
-    process_music = Process(target=control.run)
+    process_control = Process(target=control.run)
+    
     process_sensor.start()
-    process_music.start()
+    process_control.start()
 
     try:
       process_sensor.join()
-      process_music.join()
+      process_control.join()
     except KeyboardInterrupt:
       process_sensor.terminate()
-      process_music.terminate()
+      process_control.terminate()
 
 if __name__ == '__main__':
   mball = MusicalBall()
