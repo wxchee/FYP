@@ -43,14 +43,14 @@ class MusicGen:
             callback= lambda *args: self._callback(*args)
         )
 
-        self.outstream.start()
         self.set_freq(C_Major[0])
-        self.set_volume(0)
+        self.set_volume(1)
+        self.outstream.start()
+
         
     def _callback(self, outdata, frames, time, status):
         if (status):
-            print('status')
-            print(status, sys.stderr)
+            print('STATUS: ', status, sys.stderr)
 
         # CROSSFADE state
         if self.state == STREAM_STATE.CROSSFADE: 

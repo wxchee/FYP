@@ -1,28 +1,20 @@
 from sensor import Sensor
-import vars
+# import shared
 from musicgen import MusicGen
 from multiprocessing import Process, cpu_count
 # import threading
-import control
+from control import control
 
 class MusicalBall:
   def __init__(self):
-    vars.sensor = Sensor()
-    # self.music = MusicGen()
+    self.sensor = Sensor()
 
   def start(self):
     print('start musical ball')
     
-    # thread_sensor = threading.Thread(target=vars.sensor.run)
-    # thread_music = threading.Thread(target=control.run, args=(self.music, vars.sensor))
-    # thread_sensor.start()
-    # thread_music.start()
-
-    # thread_sensor.join()
-    # thread_music.join()
     print('cpu count', cpu_count())
 
-    process_sensor = Process(target=vars.sensor.run)
+    process_sensor = Process(target=self.sensor.run)
     process_music = Process(target=control.run)
     process_sensor.start()
     process_music.start()

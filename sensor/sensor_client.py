@@ -1,6 +1,6 @@
 import socket
 import sys
-sys.path.append('../')
+sys.path.append('/home/wxchee/fyp/')
 # from time import sleep
 from const import SERVER_ADDR_PORT, BUFFER_SIZE
 
@@ -26,7 +26,7 @@ try:
 		# accMsg = '{} {} {} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}'.format(pitch, roll, yaw, gX, gY, gZ, aX, aY, aZ)
 		accMsg = '{:.6f} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}'.format(gX, gY, gZ, aX, aY, aZ)
 		UDPClientSocket.sendto(accMsg.encode('UTF-8'), SERVER_ADDR_PORT)
-		print(accMsg)
+		# print(accMsg)
 
 		recData, revAddr = UDPClientSocket.recvfrom(BUFFER_SIZE)
 		print('receive: {}'.format(recData.decode('UTF-8')))
