@@ -9,7 +9,7 @@ class Sensor:
         self._sense = None
         self._dt = 0
         self._prevTime = 0
-
+        self._rotMagList = []
         try:
             from sense_hat import SenseHat
             self._sense = SenseHat()
@@ -54,8 +54,14 @@ class Sensor:
         i1 = gMags.index(g1)
 
         rotDir.value = int(copysign(1, [gX, gY, gX][i1]))
-        rotMag.value = sqrt(g1 * g1 + g2 * g2)
+        rotMagnitude = sqrt(g1 * g1 + g2 * g2)
 
+        self._rotMagList.append(rotMagnitude)
+
+        if len(self._rotMagList) > 4:
+            self._rotMagList.pop(0)
+
+        rotMag.value = min(5, sum(self._rotMagList) / len(self._rotMagList))
         
         self._prevTime = time()
     

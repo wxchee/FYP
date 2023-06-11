@@ -56,26 +56,16 @@ def run():
         try:
             for note in PATTERN1["notes"]:
                 for pattern in PATTERN1["pattern"]:
-                    print("note", NOTES[note + pattern])
                     set_freq(NOTES[note + pattern])
-                    
                     curSecond = 0
-                    while curSecond < 125:
-                        dt = (time() - prevT) * 1000 # ms
+                    while curSecond < 1000:
+                        # this line will affect the dt, when change, dt factor need to be adjust accordingly
+                        set_volume(min(1, max(0, (rotMag.value - 0.03)) / 2)) 
+                        dt = (time() - prevT) * 1000 * rotMag.value / 0.5
+                        # dt = (time() - prevT) * 1000 # ms
                         curSecond += dt
                         prevT = time()
-
-            
-            # print('rotMag', rotMag.value)
-            # if rotMag.value > 3:
-            #     mg.set_volume(1)
-            #     mg.set_freq(i)
-                
-            # elif rotMag.value > 0.4:
-            #     mg.set_volume(0.8)
-            #     mg.set_freq(i)
-            # else:
-            #     mg.set_volume(0)
+                        
         except KeyboardInterrupt:
                 print("stop music thread.")
         

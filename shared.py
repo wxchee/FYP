@@ -15,3 +15,9 @@ def set_volume(v):
 
 def set_freq(f):
     goal_freq.value = f
+
+def log():
+    while True:
+        # print('yaw', yaw.value)
+        print('rotMag', rotMag.value)
+        # print(yaw.value, rotDir.value, rotMag.value, accMag.value, goal_amplitude.value, goal_freq.value)
