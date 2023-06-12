@@ -18,6 +18,7 @@ def set_freq(f):
 
 def log():
     while True:
+        pass
         # print('yaw', yaw.value)
-        print('rotMag', rotMag.value)
+        # print('rotMag', rotMag.value)
         # print(yaw.value, rotDir.value, rotMag.value, accMag.value, goal_amplitude.value, goal_freq.value)

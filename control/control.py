@@ -52,6 +52,7 @@ def run():
     step = 25.7 # 14 steps
     # step = 23.93 # 15 steps
     set_volume(1)
+    
     while True:
         try:
             for note in PATTERN1["notes"]:
@@ -60,7 +61,7 @@ def run():
                     curSecond = 0
                     while curSecond < 1000:
                         # this line will affect the dt, when change, dt factor need to be adjust accordingly
-                        set_volume(min(1, max(0, (rotMag.value - 0.03)) / 2)) 
+                        # set_volume(min(1, max(0, (rotMag.value - 0.03)) / 2)) 
                         dt = (time() - prevT) * 1000 * rotMag.value / 0.5
                         # dt = (time() - prevT) * 1000 # ms
                         curSecond += dt

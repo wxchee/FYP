@@ -4,6 +4,7 @@ import sounddevice as sd
 import numpy as np
 import sys
 from shared import goal_amplitude, goal_freq
+import threading
 
 prev_time = 0
 dt = 0
@@ -36,7 +37,9 @@ class MusicGen:
         self.state = STREAM_STATE.IDLE
         self.next_state = STREAM_STATE.IDLE
 
-        
+        self.frame_thread = threading.Thread(target=self.run)
+        self.frame_thread.start()
+
         self.outstream = sd.OutputStream(
             samplerate=tools.fs,
             channels=1,
@@ -46,8 +49,7 @@ class MusicGen:
         
         self.outstream.start()
         goal_freq.value = C_Major[0]
-        # self.set_freq(C_Major[0])
-        # self.set_volume(1)
+        goal_amplitude.value = 1
 
         
     def _callback(self, outdata, frames, time, status):
@@ -134,4 +136,7 @@ class MusicGen:
         cross_wave = prev_wave * cross_env + next_wave * (1 - cross_env)
 
         return cross_wave, cross_wavelengh
-        
+    
+    def run(self):
+        # print('frame thread')
+        pass
