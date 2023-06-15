@@ -1,32 +1,23 @@
 from musicgen import tools
 from musicgen.tools import C_Major, STREAM_STATE
+
 import sounddevice as sd
 import numpy as np
 import sys
 from shared import goal_amplitude, goal_freq
-import threading
-
-prev_time = 0
-dt = 0
-isPlaying = 0
-yawCountDown = 0
-
 
 # approx. stream requested frame size in rpi: 512
 # approx. stream requested frame size in laptop: 400
 # hence, make every freq wave sample to bigger than 512
-sample_chunk = 600 # ~13.6ms worth of frame
+min_sample_chunk = 600 # ~13.6ms worth of frame
 
 class MusicGen:
     def __init__(self):
         self.freq = 0
-        self.wave = tools.get_wave_by_freq(0, 0, np.linspace(0, 1, sample_chunk))
-        self.wavelength = sample_chunk
-
-        # goal_freq.value = None
+        self.wave = tools.get_wave_by_freq(0, 0, np.linspace(0, 1, min_sample_chunk))
+        self.wavelength = min_sample_chunk
 
         self.amplitude = 0
-        # goal_amplitude.value = 0
         self.amp_duration = 0.15
         
         self.cross_wave = None
@@ -37,15 +28,12 @@ class MusicGen:
         self.state = STREAM_STATE.IDLE
         self.next_state = STREAM_STATE.IDLE
 
-        self.frame_thread = threading.Thread(target=self.run)
-        self.frame_thread.start()
-
         self.outstream = sd.OutputStream(
             samplerate=tools.fs,
             channels=1,
+            blocksize=500,
             callback= lambda *args: self._callback(*args)
         )
-
         
         self.outstream.start()
         goal_freq.value = C_Major[0]
@@ -56,6 +44,7 @@ class MusicGen:
         if (status):
             print('STATUS: ', status, sys.stderr)
 
+        # print('f', frames)
         # CROSSFADE state
         if self.state == STREAM_STATE.CROSSFADE: 
             if self.phase + frames > self.cross_wavelengh: # reach the end of the wave
@@ -63,7 +52,7 @@ class MusicGen:
                 goal_wave, goal_wavelength = self.get_goal(goal_freq.value)
                 new_wave = np.concatenate((self.cross_wave[self.phase:self.cross_wavelengh], goal_wave[:diff]))
                 self.freq, self.wave, self.wavelength = goal_freq.value, goal_wave, goal_wavelength
-                self.state = self.next_state  = STREAM_STATE.IDLE
+                self.state = self.next_state = STREAM_STATE.IDLE
                 self.phase = diff
             else:
                 new_wave = self.cross_wave[self.phase:(self.phase + frames)]
@@ -84,7 +73,7 @@ class MusicGen:
             else:
                 new_wave = self.wave[self.phase:(self.phase + frames)]
                 self.phase += frames
-        
+
         # handle amplitude change
         amp_env = np.ones(frames)
         if self.amplitude != goal_amplitude.value:
@@ -92,28 +81,18 @@ class MusicGen:
             self.amplitude = amp_env[-1]
 
         target_amp = amp_env.reshape(-1,1) if self.amplitude != goal_amplitude.value else self.amplitude
+
         outdata[:] = new_wave.reshape(-1,1) * target_amp
-
-        # print('on callback')
-
-    # def set_freq(self, new_freq):
-    #     goal_freq.value = new_freq
-
-
+        
 
     def get_goal(self, goal_freq):
-        global sample_chunk
-        cycle = round(sample_chunk * goal_freq / tools.fs)
+        global min_sample_chunk
+        cycle = round(min_sample_chunk * goal_freq / tools.fs)
         goal_wavelength = round(tools.fs / goal_freq * cycle)
         new_time_array = tools.get_time_array(0, goal_wavelength)
         goal_wave = tools.get_wave_by_freq(goal_freq, 1, new_time_array)
 
         return goal_wave, goal_wavelength
-
-
-
-    # def set_volume(self, new_amp):
-    #     goal_amplitude.value = new_amp
 
 
     def get_amp_env(self, start_amp, frames):
@@ -124,8 +103,8 @@ class MusicGen:
     
 
     def get_cross_fade(self, prev_freq, next_freq):
-        global sample_chunk
-        cycle = round(sample_chunk * 10 * next_freq / tools.fs)
+        global min_sample_chunk
+        cycle = round(min_sample_chunk * 10 * next_freq / tools.fs)
         cross_wavelengh = round(tools.fs / next_freq * cycle)
 
         time_array = tools.get_time_array(0, cross_wavelengh)
@@ -136,7 +115,3 @@ class MusicGen:
         cross_wave = prev_wave * cross_env + next_wave * (1 - cross_env)
 
         return cross_wave, cross_wavelengh
-    
-    def run(self):
-        # print('frame thread')
-        pass

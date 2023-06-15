@@ -3,7 +3,7 @@ from multiprocessing import Value
 
 yaw = Value('d', 0)
 rotDir = Value('i', 0)
-rotMag = Value('d', 0.0)
+rotMag = Value('d', 0.8)
 
 accMag = Value('d', 0.0)
 

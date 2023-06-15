@@ -49,24 +49,28 @@ def run():
     global dt, prevT
     print('start control')
     # global dt, prevTime
-    step = 25.7 # 14 steps
-    # step = 23.93 # 15 steps
     set_volume(1)
-    
+    rotMag.value = 2
     while True:
         try:
-            for note in PATTERN1["notes"]:
-                for pattern in PATTERN1["pattern"]:
-                    set_freq(NOTES[note + pattern])
-                    curSecond = 0
-                    while curSecond < 1000:
-                        # this line will affect the dt, when change, dt factor need to be adjust accordingly
-                        # set_volume(min(1, max(0, (rotMag.value - 0.03)) / 2)) 
-                        dt = (time() - prevT) * 1000 * rotMag.value / 0.5
-                        # dt = (time() - prevT) * 1000 # ms
-                        curSecond += dt
-                        prevT = time()
-                        
+            # # dynamic melody mode
+            # for note in PATTERN1["notes"]:
+            #     for pattern in PATTERN1["pattern"]:
+            #         set_freq(NOTES[note + pattern])
+            #         curSecond = 0
+            #         while curSecond < 1000:
+            #             # this line will affect the dt, when change, dt factor need to be adjust accordingly
+            #             set_volume(min(1, max(0, (rotMag.value - 0.03)) / 2)) 
+            #             dt = (time() - prevT) * 1000 * rotMag.value / 0.5
+            #             # dt = (time() - prevT) * 1000 # ms
+            #             curSecond += dt
+            #             prevT = time()
+
+            # load wav file test
+            set_volume(0)
+            sleep(1)
+            set_volume(1)
+            sleep(1)   
         except KeyboardInterrupt:
                 print("stop music thread.")
         
