@@ -4,7 +4,7 @@ import numpy as np
 from math import floor, ceil, copysign
 from musicgen import MusicGen
 from musicgen.tools import C_Major, NOTES, PATTERN1
-from shared import yaw, rotMag, set_volume, set_freq
+from shared import yaw, rotMag, set_volume, set_freq, set_speed
 
 note_mat = [
      0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -50,7 +50,7 @@ def run():
     print('start control')
     # global dt, prevTime
     set_volume(1)
-    rotMag.value = 2
+    rotMag.value = 1
     while True:
         try:
             # # dynamic melody mode
@@ -67,10 +67,16 @@ def run():
             #             prevT = time()
 
             # load wav file test
-            set_volume(0)
-            sleep(1)
             set_volume(1)
-            sleep(1)   
+            # set_speed(2)
+            # sleep(3)   
+            # set_speed(3)
+            # sleep(3)
+            # set_speed(2)
+            # sleep(3)
+            # set_speed(1)
+            # sleep(3)
+
         except KeyboardInterrupt:
                 print("stop music thread.")
         
