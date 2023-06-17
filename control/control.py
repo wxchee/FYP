@@ -51,6 +51,7 @@ def run():
     # global dt, prevTime
     set_volume(1)
     rotMag.value = 1
+    interval = 0.5
     while True:
         try:
             # # dynamic melody mode
@@ -67,15 +68,34 @@ def run():
             #             prevT = time()
 
             # load wav file test
-            set_volume(1)
+            # set_volume(1)
             # set_speed(2)
-            # sleep(3)   
-            # set_speed(3)
-            # sleep(3)
-            # set_speed(2)
-            # sleep(3)
+            
             # set_speed(1)
-            # sleep(3)
+            # sleep(interval)
+            # set_speed(1.1)
+            # sleep(interval)
+            # set_speed(1.2)
+            # sleep(interval)
+            # set_speed(1.1)
+            # sleep(interval)
+            # set_speed(1.0)
+            # sleep(interval)
+            set_speed(0.9)
+            sleep(interval)
+            set_speed(0.8)
+            sleep(interval)
+            set_speed(0.7)
+            sleep(interval)
+            set_speed(0.6)
+            sleep(interval)
+            set_speed(0.7)
+            sleep(interval)
+            set_speed(0.8)
+            sleep(interval)
+            set_speed(0.9)
+            sleep(interval)
+            
 
         except KeyboardInterrupt:
                 print("stop music thread.")

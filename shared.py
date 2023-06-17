@@ -19,7 +19,7 @@ def set_freq(f):
     goal_freq.value = f
 
 def set_speed(s):
-    goal_speed.value = s
+    goal_speed.value = min(1.2, max(0.6, s))
 
 def log():
     while True:
