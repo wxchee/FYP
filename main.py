@@ -1,6 +1,7 @@
 from sensor import Sensor
 # from musicgen import MusicGen
-from music2 import MusicGen
+# from music2 import MusicGen
+from music3 import MusicGen
 from multiprocessing import Process, cpu_count
 # import threading
 from control import control
