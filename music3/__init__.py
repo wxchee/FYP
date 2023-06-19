@@ -5,9 +5,9 @@ from musicgen import tools
 from shared import goal_amplitude, goal_speed
 import sys
 import librosa
-# from time import time
+from time import time
 
-min_sample_chunk = 3000
+min_sample_chunk = 1000
 
 class MusicGen:
     def __init__(self):
@@ -35,15 +35,13 @@ class MusicGen:
         print('new length', len(self.wav1), len(self.wav2), len(self.wav3))
         # data, self.samplerate = librosa.load(wav_file, sr=None, mono=True)
         
-
-        # self.data = librosa.effects.time_stretch(data, rate=1)
-        # self.data = data
         goal_amplitude.value = 1
 
         self.f_global = 0
         self.max_length = max(len(self.wav1), len(self.wav2), len(self.wav3))
         print('maxxxxxxxx', self.max_length)
 
+        self.init_time = time()
         self.outstream = sd.OutputStream(samplerate=sr1,channels=2,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
         self.outstream2 = sd.OutputStream(samplerate=sr2,channels=2,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
         self.outstream3 = sd.OutputStream(samplerate=sr3,channels=2,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
@@ -53,65 +51,43 @@ class MusicGen:
         self.outstream3.start()
         
 
-    def _callback(self, outdata, frames, time, status, index):
+    def _callback(self, outdata, frames, t, status, index):
         if (status):
             print('STATUS: ', status, sys.stderr)
 
-        # f_global = int(time.currentTime * 1000) % self.max_length
-        f_global = int(time.currentTime * 1000) % len(self.wav1)
-        print(index, f_global)
-        
-        # if index == 1:
-        #     if self.f_1 + frames > len(self.wav1):
-        #         remain_length1 = frames - (len(self.wav1) - self.f_1)
-        #         new_wav = np.concatenate((self.wav1[self.f_1:], self.wav1[:remain_length1]))
-        #         self.f_1 = remain_length1
-        #     else:
-        #         new_wav = self.wav1[self.f_1:self.f_1+frames]
-        #         self.f_1 += frames
-        # elif index == 2:
-        #     if self.f_2 + frames > len(self.wav2):
-        #         remain_length2 = frames - (len(self.wav2) - self.f_2)
-        #         new_wav = np.concatenate((self.wav2[self.f_2:], self.wav2[:remain_length2]))
-        #         self.f_2 = remain_length2
-        #     else:
-        #         new_wav = self.wav2[self.f_2:self.f_2+frames]
-        #         self.f_2 += frames
-        # elif index == 3:
-        #     if self.f_3 + frames > len(self.wav3):
-        #         remain_length3 = frames - (len(self.wav3) - self.f_3)
-        #         new_wav = np.concatenate((self.wav3[self.f_3:], self.wav3[:remain_length3]))
-        #         self.f_3 = remain_length3
-        #     else:
-        #         new_wav = self.wav3[self.f_3:self.f_3+frames]
-        #         self.f_3 += frames
         if index == 1:
-            f_global = int(time.currentTime * 44100) % len(self.wav1)
-            if f_global + frames > len(self.wav1):
-                remain_length1 = frames - (len(self.wav1) - f_global)
-                new_wav = np.concatenate((self.wav1[f_global:], self.wav1[:remain_length1]))
-                # self.f_1 = remain_length1
+            f_global = int(t.currentTime * 44100) % len(self.wav1)
+            if f_global == 0:
+                self.f_1 = 0
+            if self.f_1 + frames > len(self.wav1):
+                remain_length1 = frames - (len(self.wav1) - self.f_1)
+                new_wav = np.concatenate((self.wav1[self.f_1:], self.wav1[:remain_length1]))
+                self.f_1 = remain_length1
             else:
-                new_wav = self.wav1[f_global:f_global+frames]
-                # self.f_1 += frames
+                new_wav = self.wav1[self.f_1:self.f_1+frames]
+                self.f_1 += frames
         elif index == 2:
-            f_global = int(time.currentTime * 44100) % len(self.wav2)
-            if f_global + frames > len(self.wav2):
-                remain_length2 = frames - (len(self.wav2) - f_global)
-                new_wav = np.concatenate((self.wav2[f_global:], self.wav2[:remain_length2]))
-                # self.f_2 = remain_length2
+            f_global = int(t.currentTime * 44100) % len(self.wav2)
+            if f_global == 0:
+                self.f_2 = 0
+            if self.f_2 + frames > len(self.wav2):
+                remain_length2 = frames - (len(self.wav2) - self.f_2)
+                new_wav = np.concatenate((self.wav2[self.f_2:], self.wav2[:remain_length2]))
+                self.f_2 = remain_length2
             else:
-                new_wav = self.wav2[f_global:f_global+frames]
-                # self.f_2 += frames
+                new_wav = self.wav2[self.f_2:self.f_2+frames]
+                self.f_2 += frames
         elif index == 3:
-            f_global = int(time.currentTime * 44100) % len(self.wav3)
-            if f_global + frames > len(self.wav3):
-                remain_length3 = frames - (len(self.wav3) - f_global)
-                new_wav = np.concatenate((self.wav3[f_global:], self.wav3[:remain_length3]))
-                # self.f_3 = remain_length3
+            f_global = int(t.currentTime * 44100) % len(self.wav3)
+            if f_global == 0:
+                self.f_3 = 0
+            if self.f_3 + frames > len(self.wav3):
+                remain_length3 = frames - (len(self.wav3) - self.f_3)
+                new_wav = np.concatenate((self.wav3[self.f_3:], self.wav3[:remain_length3]))
+                self.f_3 = remain_length3
             else:
-                new_wav = self.wav3[f_global:f_global+frames]
-                # self.f_3 += frames
+                new_wav = self.wav3[self.f_3:self.f_3+frames]
+                self.f_3 += frames
         
         outdata[:] = new_wav
 
