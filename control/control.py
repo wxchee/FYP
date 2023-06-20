@@ -4,7 +4,7 @@ import numpy as np
 from math import floor, ceil, copysign
 from musicgen import MusicGen
 from musicgen.tools import C_Major, NOTES, PATTERN1
-from shared import yaw, rotMag, set_volume, set_freq, set_speed
+from shared import yaw, rotMag, set_volume, set_freq, set_speed, aX, aY, aZ, volX, volY, volZ
 
 note_mat = [
      0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -68,9 +68,14 @@ def run():
             #             prevT = time()
 
             # load wav file test
-            sleep(5)
-            set_volume(1)
-            
+            # sleep(3)
+            # set_volume(1)
+            if rotMag.value > 4:
+                volX.value = volY.value = volZ.value = 1.0
+            else:
+                volX.value = abs(aX.value) if abs(aX.value) > 0.5 else 0.0
+                volY.value = abs(aY.value) if abs(aY.value) > 0.5 else 0.0
+                volZ.value = abs(aZ.value) if abs(aZ.value) > 0.5 else 0.0
             # set_volume(0)
             # sleep(5)
             # set_volume(1)

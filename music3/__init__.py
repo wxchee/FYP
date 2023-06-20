@@ -2,7 +2,7 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 from musicgen import tools
-from shared import goal_amplitude, goal_speed
+from shared import get_vol, volX, volY, volZ
 import sys
 # import librosa
 from time import time
@@ -15,7 +15,7 @@ AUDIO_FILES = [
     'audios/track_mag_string.wav'
 ]
 
-SYNC_INTERVAL = 3
+SYNC_INTERVAL = 2
 
 class MusicGen:
     def __init__(self):
@@ -30,7 +30,7 @@ class MusicGen:
 
         for i, file in enumerate(AUDIO_FILES):
             wav, sr = sf.read(file)
-            self.tracks[i] = { 'd': wav[:682760], 'l': 682760 if len(wav) > 682760 else len(wav), 'f': 0}
+            self.tracks[i] = { 'd': wav[:682760], 'l': 682760 if len(wav) > 682760 else len(wav), 'f': 0, 'amp': 0}
             # print(i, sr, self.tracks[i])
         # # data, self.samplerate = librosa.load(wav_file, sr=None, mono=True)
 
@@ -57,7 +57,7 @@ class MusicGen:
         
         if (self.cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every 5 seconds
             self.tracks[i]['f'] = floor(self.cur_t * 44100.0) % self.tracks[i]['l']
-            # print(i, 'repos', floor(self.cur_t * 44100.0) % self.tracks[i]['l'])
+            print(i, 'repos', floor(self.cur_t * 44100.0) % self.tracks[i]['l'])
         
         if i == 0:
             self.last_sync = self.cur_t % SYNC_INTERVAL
@@ -75,35 +75,35 @@ class MusicGen:
 
         # handle amplitude change
         amp_env = np.ones(frames)
-        if self.amplitude != goal_amplitude.value:
-            if abs(self.amplitude - goal_amplitude.value) < 0.01:
-                self.amplitude = goal_amplitude.value
+        goal_amp = get_vol(i)
+        if self.tracks[i]['amp'] != goal_amp:
+            if abs(self.tracks[i]['amp'] - goal_amp) < 0.01:
+                self.tracks[i]['amp'] = goal_amp
             else:
-                amp_env = self.get_amp_env(self.amplitude, frames)
-                self.amplitude = amp_env[-1]
+                amp_env = self.get_amp_env(self.tracks[i]['amp'], frames, goal_amp)
+                self.tracks[i]['amp'] = amp_env[-1]
 
 
-        target_amp = amp_env if self.amplitude != goal_amplitude.value else self.amplitude
+        target_amp = amp_env if self.tracks[i]['amp'] != goal_amp else self.tracks[i]['amp']
 
         outdata[:,0] = new_wav * target_amp
-        # print(i, self.tracks[i]['f'], self.amplitude)
 
 
-    def get_amp_env(self, start_amp, frames):
-        dir = 1 if start_amp < goal_amplitude.value else -1
-        diff = goal_amplitude.value - start_amp
+    def get_amp_env(self, start_amp, frames, goal):
+        dir = 1 if start_amp < goal else -1
+        diff = goal - start_amp
         
         end_amp = start_amp + diff * min(1, frames / (tools.fs * self.volume_fade_duration))
         
         amp_wave = np.linspace(start_amp, end_amp, frames)
         if dir == 1:
-            if (end_amp < goal_amplitude.value):
+            if (end_amp < goal):
                 return amp_wave
         else:
-            if (end_amp > goal_amplitude.value):
+            if (end_amp > goal):
                 return amp_wave
 
         diff_frames = int(abs(diff * tools.fs * self.volume_fade_duration))
 
-        return np.linspace(start_amp, goal_amplitude.value, diff_frames)
+        return np.linspace(start_amp, goal, diff_frames)
     
