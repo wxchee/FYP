@@ -5,7 +5,11 @@ yaw = Value('d', 0)
 rotDir = Value('i', 0)
 rotMag = Value('d', 0.8)
 
-accMag = Value('d', 0.0)
+aMag = Value('d', 0.0)
+aX = Value('d', 0.0)
+aY = Value('d', 0.0)
+aZ = Value('d', 0.0)
+
 
 goal_amplitude = Value('d', 0.0)
 goal_freq = Value('d', 0.0)
@@ -26,4 +30,5 @@ def log():
         pass
         # print('yaw', yaw.value)
         # print('rotMag', rotMag.value)
-        # print(yaw.value, rotDir.value, rotMag.value, accMag.value, goal_amplitude.value, goal_freq.value)
+        print(aX.value, aY.value, aZ.value)
+        # print(yaw.value, rotDir.value, rotMag.value, aMag.value, goal_amplitude.value, goal_freq.value)

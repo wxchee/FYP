@@ -1,7 +1,7 @@
 import math
 import numpy as np
 from math import copysign, sqrt
-from shared import rotDir, rotMag, accMag, yaw
+from shared import rotDir, rotMag, aMag, aX, aY, aZ, yaw
 from time import time
 
 class Sensor:
@@ -65,8 +65,11 @@ class Sensor:
         
         self._prevTime = time()
     
-    def set_acc(self, aX, aY, aZ):
-        accMag.value = (aX * aX + aY * aY + aZ * aZ) ** (1/3)
+    def set_acc(self, x, y, z):
+        aMag.value = (x * x + y * y + z * z) ** (1/3)
+        aX.value = x
+        aY.value = y
+        aZ.value = z
 
     # def set_orientation(self, p, r, y):
     #     pitch.value = int(p) % 360
