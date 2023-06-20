@@ -4,10 +4,16 @@ import numpy as np
 from musicgen import tools
 from shared import goal_amplitude, goal_speed
 import sys
-import librosa
+# import librosa
 from time import time
+from math import ceil, floor
+min_sample_chunk = 8820
 
-min_sample_chunk = 1000
+AUDIO_FILES = [
+    'audios/track_drum.wav',
+    'audios/track_piano.wav',
+    'audios/track_mag_string.wav'
+]
 
 class MusicGen:
     def __init__(self):
@@ -22,75 +28,47 @@ class MusicGen:
         self.f_2 = 0
         self.f_3 = 0
 
+        self.tracks = {0: None, 1: None, 2: None}
 
-        self.wav1, sr1 = sf.read('audios/iso_drum.wav')
-        wav2, sr2 = sf.read('audios/iso_piano.wav')
-        wav3, sr3 = sf.read('audios/iso_mag_string.wav')
-
-        # print('sr', samplerate, samplerate2, samplerate3)
-        print('length', len(self.wav1), len(wav2), len(wav3))
-        # 682840 as standard frames length (85355 for drum)
-        self.wav2 = np.concatenate((wav2, [wav2[-1]]))
-        self.wav3 = wav3[:682840]
-        print('new length', len(self.wav1), len(self.wav2), len(self.wav3))
-        # data, self.samplerate = librosa.load(wav_file, sr=None, mono=True)
+        for i, file in enumerate(AUDIO_FILES):
+            wav, sr = sf.read(file)
+            self.tracks[i] = { 'd': wav[:682760], 'l': 682760 if len(wav) > 682760 else len(wav), 'f': 0, 'sync': 99}
+            print(i, sr, self.tracks[i])
+        # # data, self.samplerate = librosa.load(wav_file, sr=None, mono=True)
         
-        goal_amplitude.value = 1
+        # goal_amplitude.value = 1
 
-        self.f_global = 0
-        self.max_length = max(len(self.wav1), len(self.wav2), len(self.wav3))
-        print('maxxxxxxxx', self.max_length)
-
-        self.init_time = time()
-        self.outstream = sd.OutputStream(samplerate=sr1,channels=2,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.outstream2 = sd.OutputStream(samplerate=sr2,channels=2,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        self.outstream3 = sd.OutputStream(samplerate=sr3,channels=2,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
+        self.outstream = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.outstream2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.outstream3 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
         
+        self.init_t = time()
         self.outstream.start()
         self.outstream2.start()
         self.outstream3.start()
         
 
-    def _callback(self, outdata, frames, t, status, index):
+    def _callback(self, outdata, frames, paT, status, i):
         if (status):
             print('STATUS: ', status, sys.stderr)
 
-        if index == 1:
-            f_global = int(t.currentTime * 44100) % len(self.wav1)
-            if f_global == 0:
-                self.f_1 = 0
-            if self.f_1 + frames > len(self.wav1):
-                remain_length1 = frames - (len(self.wav1) - self.f_1)
-                new_wav = np.concatenate((self.wav1[self.f_1:], self.wav1[:remain_length1]))
-                self.f_1 = remain_length1
-            else:
-                new_wav = self.wav1[self.f_1:self.f_1+frames]
-                self.f_1 += frames
-        elif index == 2:
-            f_global = int(t.currentTime * 44100) % len(self.wav2)
-            if f_global == 0:
-                self.f_2 = 0
-            if self.f_2 + frames > len(self.wav2):
-                remain_length2 = frames - (len(self.wav2) - self.f_2)
-                new_wav = np.concatenate((self.wav2[self.f_2:], self.wav2[:remain_length2]))
-                self.f_2 = remain_length2
-            else:
-                new_wav = self.wav2[self.f_2:self.f_2+frames]
-                self.f_2 += frames
-        elif index == 3:
-            f_global = int(t.currentTime * 44100) % len(self.wav3)
-            if f_global == 0:
-                self.f_3 = 0
-            if self.f_3 + frames > len(self.wav3):
-                remain_length3 = frames - (len(self.wav3) - self.f_3)
-                new_wav = np.concatenate((self.wav3[self.f_3:], self.wav3[:remain_length3]))
-                self.f_3 = remain_length3
-            else:
-                new_wav = self.wav3[self.f_3:self.f_3+frames]
-                self.f_3 += frames
+        cur_t = paT.currentTime - self.init_t
+        # print(cur_t % 5)
+        if (cur_t % 2) < self.tracks[i]['sync']: # sync each track every 5 seconds
+            self.tracks[i]['f'] = floor(cur_t * 44100.0) % self.tracks[i]['l']
+            print(i, 'repos', floor(cur_t * 44100.0) % self.tracks[i]['l'])
         
-        outdata[:] = new_wav
-
+        self.tracks[i]['sync'] = cur_t % 2
+        
+        if self.tracks[i]['f'] + frames > self.tracks[i]['l']:
+            remain_frames = frames - (self.tracks[i]['l'] - self.tracks[i]['f'])
+            new_wav = np.concatenate((self.tracks[i]['d'][self.tracks[i]['f']:], self.tracks[i]['d'][:remain_frames]))
+            self.tracks[i]['f'] = remain_frames
+        else:
+            new_wav = self.tracks[i]['d'][self.tracks[i]['f']:self.tracks[i]['f']+frames]
+            self.tracks[i]['f'] += frames
+        
+        outdata[:,0] = new_wav
 
 
 
