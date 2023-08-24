@@ -1,8 +1,9 @@
 import sounddevice as sd
 import soundfile as sf
 import numpy as np
-from musicgen import tools
-from shared import get_vol, volX, volY, volZ
+from Music1 import tools
+# from shared import get_vol, volX, volY, volZ
+from shared import aX, aY, aZ, rotMag
 import sys
 # import librosa
 from time import time
@@ -17,7 +18,12 @@ AUDIO_FILES = [
 
 SYNC_INTERVAL = 2
 
-class MusicGen:
+vols = [0.0, 0.0, 0.0]
+# volX = 0
+# volY = 0
+# volZ = 0
+
+class Music2:
     def __init__(self):
         self.freq = 0
 
@@ -34,17 +40,17 @@ class MusicGen:
             # print(i, sr, self.tracks[i])
         # # data, self.samplerate = librosa.load(wav_file, sr=None, mono=True)
 
-        self.outstream = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        self.outstream2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.outstream3 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+        # self.outstream = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        # self.outstream2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        # self.outstream3 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
         
-        self.init_t = time()
-        self.cur_t = 0
-        self.last_sync = 99
+        # self.init_t = time()
+        # self.cur_t = 0
+        # self.last_sync = 99
 
-        self.outstream.start()
-        self.outstream2.start()
-        self.outstream3.start()
+        # self.outstream.start()
+        # self.outstream2.start()
+        # self.outstream3.start()
         
 
     def _callback(self, outdata, frames, paT, status, i):
@@ -75,7 +81,8 @@ class MusicGen:
 
         # handle amplitude change
         amp_env = np.ones(frames)
-        goal_amp = get_vol(i)
+        goal_amp = vols[i]
+        # goal_amp = get_vol(i)
         if self.tracks[i]['amp'] != goal_amp:
             if abs(self.tracks[i]['amp'] - goal_amp) < 0.01:
                 self.tracks[i]['amp'] = goal_amp
@@ -107,3 +114,33 @@ class MusicGen:
 
         return np.linspace(start_amp, goal, diff_frames)
     
+
+    def start(self):
+        self.outstream = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.outstream2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.outstream3 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+        
+        self.init_t = time()
+        self.cur_t = 0
+        self.last_sync = 99
+
+        self.outstream.start()
+        self.outstream2.start()
+        self.outstream3.start()
+
+    def run(self):
+        if rotMag.value > 4:
+            vols[0] = vols[1] = vols[2] = 1.0
+            # volX.value = volY.value = volZ.value = 1.0
+        else:
+            vols[0] = abs(aX.value) if abs(aX.value) > 0.5 else 0.0
+            vols[1] = abs(aY.value) if abs(aY.value) > 0.5 else 0.0
+            vols[2] = abs(aZ.value) if abs(aZ.value) > 0.5 else 0.0
+            # volX.value = abs(aX.value) if abs(aX.value) > 0.5 else 0.0
+            # volY.value = abs(aY.value) if abs(aY.value) > 0.5 else 0.0
+            # volZ.value = abs(aZ.value) if abs(aZ.value) > 0.5 else 0.0
+    
+    def stop(self):
+        self.outstream.stop()
+        self.outstream2.stop()
+        self.outstream3.stop()
