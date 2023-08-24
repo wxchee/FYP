@@ -1,15 +1,15 @@
-from musicgen import tools
-from musicgen.tools import C_Major, STREAM_STATE
+from Music1 import tools
+from Music1.tools import C_Major, STREAM_STATE
+from Music1.tools.pattern import PATTERN1, NOTES
 
 from time import time
 
 import sounddevice as sd
 import numpy as np
 import sys
-# from shared import goal_amplitude, goal_freq
 from shared import rotMag
 
-from musicgen.tools.pattern import PATTERN1, NOTES
+
 
 # approx. stream requested frame size in rpi: 512
 # approx. stream requested frame size in laptop: 400
@@ -40,16 +40,6 @@ class Music1:
         self.next_state = STREAM_STATE.IDLE
 
         self.outstream = None
-        # self.outstream = sd.OutputStream(
-        #     samplerate=tools.fs,
-        #     channels=1,
-        #     blocksize=500,
-        #     callback= lambda *args: self._callback(*args)
-        # )
-        
-        # self.outstream.start()
-        # goal_freq.value = C_Major[0]
-        # goal_amplitude.value = 1
 
         
     def _callback(self, outdata, frames, time, status):

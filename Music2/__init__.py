@@ -2,10 +2,10 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 from Music1 import tools
-# from shared import get_vol, volX, volY, volZ
+
 from shared import aX, aY, aZ, rotMag
+
 import sys
-# import librosa
 from time import time
 from math import ceil, floor
 min_sample_chunk = 1000
@@ -19,9 +19,8 @@ AUDIO_FILES = [
 SYNC_INTERVAL = 2
 
 vols = [0.0, 0.0, 0.0]
-# volX = 0
-# volY = 0
-# volZ = 0
+
+FRAME_CAP = 682760
 
 class Music2:
     def __init__(self):
@@ -30,43 +29,29 @@ class Music2:
         self.amplitude = 0
         self.volume_fade_duration = 0.3
 
-        self.speed = 1
+        self.init_t = 0
+        self.last_sync = 0
 
         self.tracks = {0: None, 1: None, 2: None}
 
         for i, file in enumerate(AUDIO_FILES):
             wav, sr = sf.read(file)
-            self.tracks[i] = { 'd': wav[:682760], 'l': 682760 if len(wav) > 682760 else len(wav), 'f': 0, 'amp': 0}
-            # print(i, sr, self.tracks[i])
-        # # data, self.samplerate = librosa.load(wav_file, sr=None, mono=True)
-
-        # self.outstream = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        # self.outstream2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        # self.outstream3 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        
-        # self.init_t = time()
-        # self.cur_t = 0
-        # self.last_sync = 99
-
-        # self.outstream.start()
-        # self.outstream2.start()
-        # self.outstream3.start()
+            self.tracks[i] = { 'd': wav[:FRAME_CAP], 'l': FRAME_CAP if len(wav) > FRAME_CAP else len(wav), 'f': 0, 'amp': 0}
         
 
     def _callback(self, outdata, frames, paT, status, i):
         if (status):
             print('STATUS: ', status, sys.stderr)
         
-        # if i == 0:
-        self.cur_t = paT.currentTime - self.init_t
+        cur_t = paT.currentTime - self.init_t
         
         
-        if (self.cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every 5 seconds
-            self.tracks[i]['f'] = floor(self.cur_t * 44100.0) % self.tracks[i]['l']
-            print(i, 'repos', floor(self.cur_t * 44100.0) % self.tracks[i]['l'])
+        if (cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every 5 seconds
+            self.tracks[i]['f'] = floor(cur_t * 44100.0) % self.tracks[i]['l']
+            print(i, 'repos', floor(cur_t * 44100.0) % self.tracks[i]['l'])
         
         if i == 0:
-            self.last_sync = self.cur_t % SYNC_INTERVAL
+            self.last_sync = cur_t % SYNC_INTERVAL
         
     
         if self.tracks[i]['f'] + frames > self.tracks[i]['l']:
@@ -82,7 +67,6 @@ class Music2:
         # handle amplitude change
         amp_env = np.ones(frames)
         goal_amp = vols[i]
-        # goal_amp = get_vol(i)
         if self.tracks[i]['amp'] != goal_amp:
             if abs(self.tracks[i]['amp'] - goal_amp) < 0.01:
                 self.tracks[i]['amp'] = goal_amp
@@ -121,7 +105,6 @@ class Music2:
         self.outstream3 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
         
         self.init_t = time()
-        self.cur_t = 0
         self.last_sync = 99
 
         self.outstream.start()
@@ -131,14 +114,10 @@ class Music2:
     def run(self):
         if rotMag.value > 4:
             vols[0] = vols[1] = vols[2] = 1.0
-            # volX.value = volY.value = volZ.value = 1.0
         else:
             vols[0] = abs(aX.value) if abs(aX.value) > 0.5 else 0.0
             vols[1] = abs(aY.value) if abs(aY.value) > 0.5 else 0.0
             vols[2] = abs(aZ.value) if abs(aZ.value) > 0.5 else 0.0
-            # volX.value = abs(aX.value) if abs(aX.value) > 0.5 else 0.0
-            # volY.value = abs(aY.value) if abs(aY.value) > 0.5 else 0.0
-            # volZ.value = abs(aZ.value) if abs(aZ.value) > 0.5 else 0.0
     
     def stop(self):
         self.outstream.stop()
