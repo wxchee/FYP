@@ -1,11 +1,12 @@
 from tools import get_wave_by_freq, get_time_array, get_crossfade_filter, fs
-from tools import C_Major, STREAM_STATE, PATTERN1, NOTES
+from tools import C_Major, STREAM_STATE
+# , PATTERN1, NOTES
 
-from time import time
+from time import time, sleep
 
 import numpy as np
 import sys
-from shared import rotMag
+from shared import rotMag, mode, goalFreq, goalAmp
 
 
 
@@ -26,8 +27,8 @@ class Music1:
         self.amplitude = 0
         self.amp_duration = 0.15
         
-        self.goal_freq = C_Major[0]
-        self.goal_amplitude = 1
+        # goalFreq.value = C_Major[0]
+        # goalAmp.value = 1
 
         self.cross_wave = None
         self.cross_wavelengh = 0
@@ -39,6 +40,8 @@ class Music1:
 
         self.outstream = None
 
+        self.init() # only call this if Music1 is instantiated via Process in main.py
+
         
     def _callback(self, outdata, frames, time, status):
         if (status):
@@ -49,9 +52,9 @@ class Music1:
         if self.state == STREAM_STATE.CROSSFADE: 
             if self.phase + frames > self.cross_wavelengh: # reach the end of the wave
                 diff = self.phase + frames - self.cross_wavelengh
-                goal_wave, goal_wavelength = self.get_goal(self.goal_freq)
+                goal_wave, goal_wavelength = self.get_goal(goalFreq.value)
                 new_wave = np.concatenate((self.cross_wave[self.phase:self.cross_wavelengh], goal_wave[:diff]))
-                self.freq, self.wave, self.wavelength = self.goal_freq, goal_wave, goal_wavelength
+                self.freq, self.wave, self.wavelength = goalFreq.value, goal_wave, goal_wavelength
                 self.state = self.next_state = STREAM_STATE.IDLE
                 self.phase = diff
             else:
@@ -62,8 +65,8 @@ class Music1:
         else: 
             if self.phase + frames > self.wavelength: # reach the end of the wave
                 diff = self.phase + frames - self.wavelength
-                if self.goal_freq != self.freq:
-                    self.cross_wave, self.cross_wavelengh = self.get_cross_fade(self.freq, self.goal_freq)
+                if goalFreq.value != self.freq:
+                    self.cross_wave, self.cross_wavelengh = self.get_cross_fade(self.freq, goalFreq.value)
                     new_wave = np.concatenate((self.wave[self.phase:self.wavelength], self.cross_wave[:diff]))
                     self.state = STREAM_STATE.CROSSFADE
                 else:
@@ -76,11 +79,11 @@ class Music1:
 
         # handle amplitude change
         amp_env = np.ones(frames)
-        if self.amplitude != self.goal_amplitude:
+        if self.amplitude != goalAmp.value:
             amp_env = self.get_amp_env(self.amplitude, frames)
             self.amplitude = amp_env[-1]
 
-        target_amp = amp_env.reshape(-1,1) if self.amplitude != self.goal_amplitude else self.amplitude
+        target_amp = amp_env.reshape(-1,1) if self.amplitude != goalAmp.value else self.amplitude
 
         outdata[:] = new_wave.reshape(-1,1) * target_amp
         
@@ -96,8 +99,8 @@ class Music1:
 
 
     def get_amp_env(self, start_amp, frames):
-        dir = 1 if start_amp < self.goal_amplitude else -1
-        end_amp = start_amp + (self.goal_amplitude - start_amp) * frames / (fs * self.amp_duration)
+        dir = 1 if start_amp < goalAmp.value else -1
+        end_amp = start_amp + (goalAmp.value - start_amp) * frames / (fs * self.amp_duration)
 
         return np.linspace(start_amp, end_amp, frames)
     
@@ -116,9 +119,8 @@ class Music1:
 
         return cross_wave, cross_wavelengh
 
-
-
-    def start(self, sd):
+    def init(self):
+        import sounddevice as sd
         self.dt = 0
         self.prevT = time()
         
@@ -128,27 +130,13 @@ class Music1:
             blocksize=500, # must be smaller than min_sample_chunk
             callback= lambda *args: self._callback(*args)
         )
-        
-        self.outstream.start()
-        self.goal_freq = C_Major[0]
-        self.goal_amplitude = 1
-    
 
-    def stop(self):
-        self.outstream.stop()
-
-
-    def run(self, sd):
-        for note in PATTERN1["notes"]:
-            for p in PATTERN1["pattern"]:
-                self.goal_freq = NOTES[note + p]
-                # set_freq(NOTES[note + pattern])
-                curSecond = 0
-                while curSecond < 1000:
-                    # this line will affect the dt, when change, dt factor need to be adjust accordingly
-                    self.goal_amplitude = min(1, max(0, (rotMag.value - 0.03)) / 2)
-                    # set_volume(min(1, max(0, (rotMag.value - 0.03)) / 2)) 
-                    self.dt = (time() - self.prevT) * 1000 * rotMag.value / 0.5
-                    # dt = (time() - prevT) * 1000 # ms
-                    curSecond += self.dt
-                    self.prevT = time()
+    def run(self):
+        while True:
+            if mode.value == 0:
+                if not self.outstream.active:
+                    self.outstream.start()
+            else:
+                if self.outstream.active:
+                    self.outstream.stop()
+                sleep(0.2)

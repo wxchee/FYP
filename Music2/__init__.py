@@ -22,6 +22,7 @@ FRAME_CAP = 682760
 
 class Music2:
     def __init__(self):
+        import sounddevice as sd
         self.freq = 0
 
         self.amplitude = 0
@@ -35,6 +36,10 @@ class Music2:
         for i, file in enumerate(AUDIO_FILES):
             wav, sr = sf.read(file)
             self.tracks[i] = { 'd': wav[:FRAME_CAP], 'l': FRAME_CAP if len(wav) > FRAME_CAP else len(wav), 'f': 0, 'amp': 0}
+        
+        self.outstream = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.outstream2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.outstream3 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
         
 
     def _callback(self, outdata, frames, paT, status, i):
@@ -97,11 +102,7 @@ class Music2:
         return np.linspace(start_amp, goal, diff_frames)
     
 
-    def start(self, sd):
-        self.outstream = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        self.outstream2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.outstream3 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        
+    def start(self):
         self.init_t = time()
         self.last_sync = 99
 
@@ -109,7 +110,7 @@ class Music2:
         self.outstream2.start()
         self.outstream3.start()
 
-    def run(self, sd):
+    def run(self):
         if rotMag.value > 4:
             vols[0] = vols[1] = vols[2] = 1.0
         else:
