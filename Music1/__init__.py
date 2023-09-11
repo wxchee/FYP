@@ -1,10 +1,8 @@
-from Music1 import tools
-from Music1.tools import C_Major, STREAM_STATE
-from Music1.tools.pattern import PATTERN1, NOTES
+from tools import get_wave_by_freq, get_time_array, get_crossfade_filter, fs
+from tools import C_Major, STREAM_STATE, PATTERN1, NOTES
 
 from time import time
 
-import sounddevice as sd
 import numpy as np
 import sys
 from shared import rotMag
@@ -22,7 +20,7 @@ class Music1:
         self.prevT = 0
 
         self.freq = 0
-        self.wave = tools.get_wave_by_freq(0, 0, np.linspace(0, 1, min_sample_chunk))
+        self.wave = get_wave_by_freq(0, 0, np.linspace(0, 1, min_sample_chunk))
         self.wavelength = min_sample_chunk
 
         self.amplitude = 0
@@ -89,30 +87,30 @@ class Music1:
 
     def get_goal(self, goal_freq):
         global min_sample_chunk
-        cycle = round(min_sample_chunk * goal_freq / tools.fs)
-        goal_wavelength = round(tools.fs / goal_freq * cycle)
-        new_time_array = tools.get_time_array(0, goal_wavelength)
-        goal_wave = tools.get_wave_by_freq(goal_freq, 1, new_time_array)
+        cycle = round(min_sample_chunk * goal_freq / fs)
+        goal_wavelength = round(fs / goal_freq * cycle)
+        new_time_array = get_time_array(0, goal_wavelength)
+        goal_wave = get_wave_by_freq(goal_freq, 1, new_time_array)
 
         return goal_wave, goal_wavelength
 
 
     def get_amp_env(self, start_amp, frames):
         dir = 1 if start_amp < self.goal_amplitude else -1
-        end_amp = start_amp + (self.goal_amplitude - start_amp) * frames / (tools.fs * self.amp_duration)
+        end_amp = start_amp + (self.goal_amplitude - start_amp) * frames / (fs * self.amp_duration)
 
         return np.linspace(start_amp, end_amp, frames)
     
 
     def get_cross_fade(self, prev_freq, next_freq):
         global min_sample_chunk
-        cycle = round(min_sample_chunk * 10 * next_freq / tools.fs)
-        cross_wavelengh = round(tools.fs / next_freq * cycle)
+        cycle = round(min_sample_chunk * 10 * next_freq / fs)
+        cross_wavelengh = round(fs / next_freq * cycle)
 
-        time_array = tools.get_time_array(0, cross_wavelengh)
-        prev_wave = tools.get_wave_by_freq(prev_freq, 1, time_array)
-        next_wave = tools.get_wave_by_freq(next_freq, 1, time_array)
-        cross_env = tools.get_crossfade_filter(cross_wavelengh)
+        time_array = get_time_array(0, cross_wavelengh)
+        prev_wave = get_wave_by_freq(prev_freq, 1, time_array)
+        next_wave = get_wave_by_freq(next_freq, 1, time_array)
+        cross_env = get_crossfade_filter(cross_wavelengh)
 
         cross_wave = prev_wave * cross_env + next_wave * (1 - cross_env)
 
@@ -120,14 +118,14 @@ class Music1:
 
 
 
-    def start(self):
+    def start(self, sd):
         self.dt = 0
         self.prevT = time()
         
         self.outstream = sd.OutputStream(
-            samplerate=tools.fs,
+            samplerate=fs,
             channels=1,
-            blocksize=500,
+            blocksize=500, # must be smaller than min_sample_chunk
             callback= lambda *args: self._callback(*args)
         )
         
@@ -140,10 +138,10 @@ class Music1:
         self.outstream.stop()
 
 
-    def run(self):
+    def run(self, sd):
         for note in PATTERN1["notes"]:
-            for pattern in PATTERN1["pattern"]:
-                self.goal_freq = NOTES[note + pattern]
+            for p in PATTERN1["pattern"]:
+                self.goal_freq = NOTES[note + p]
                 # set_freq(NOTES[note + pattern])
                 curSecond = 0
                 while curSecond < 1000:

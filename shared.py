@@ -1,4 +1,3 @@
-# _sensor=None
 from multiprocessing import Value
 
 yaw = Value('d', 0)

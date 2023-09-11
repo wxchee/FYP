@@ -1,8 +1,6 @@
-import sounddevice as sd
 import soundfile as sf
 import numpy as np
-from Music1 import tools
-
+from tools import fs
 from shared import aX, aY, aZ, rotMag
 
 import sys
@@ -84,7 +82,7 @@ class Music2:
         dir = 1 if start_amp < goal else -1
         diff = goal - start_amp
         
-        end_amp = start_amp + diff * min(1, frames / (tools.fs * self.volume_fade_duration))
+        end_amp = start_amp + diff * min(1, frames / (fs * self.volume_fade_duration))
         
         amp_wave = np.linspace(start_amp, end_amp, frames)
         if dir == 1:
@@ -94,15 +92,15 @@ class Music2:
             if (end_amp > goal):
                 return amp_wave
 
-        diff_frames = int(abs(diff * tools.fs * self.volume_fade_duration))
+        diff_frames = int(abs(diff * fs * self.volume_fade_duration))
 
         return np.linspace(start_amp, goal, diff_frames)
     
 
-    def start(self):
-        self.outstream = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        self.outstream2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.outstream3 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+    def start(self, sd):
+        self.outstream = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.outstream2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.outstream3 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
         
         self.init_t = time()
         self.last_sync = 99
@@ -111,7 +109,7 @@ class Music2:
         self.outstream2.start()
         self.outstream3.start()
 
-    def run(self):
+    def run(self, sd):
         if rotMag.value > 4:
             vols[0] = vols[1] = vols[2] = 1.0
         else:
