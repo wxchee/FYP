@@ -67,9 +67,9 @@ class Sensor:
     
     def set_acc(self, x, y, z):
         aMag.value = (x * x + y * y + z * z) ** (1/3)
-        aX.value = x
-        aY.value = y
-        aZ.value = z
+        aX.value = round(x, 2)
+        aY.value = round(y, 2)
+        aZ.value = round(z, 2)
 
     # def set_orientation(self, p, r, y):
     #     pitch.value = int(p) % 360

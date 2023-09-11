@@ -9,6 +9,7 @@ from shared import aMag, mode
 
 # from Music1 import Music1
 from Music2 import Music2
+from Music3 import Music3
 
 # mode 0 dependent
 from tools import PATTERN1, NOTES
@@ -30,15 +31,18 @@ def run():
     # import sounddevice as sd
     print('start control')
     
-    runModes = [Music2()]
-    modeCount = 2
+    runModes = [
+        # Music2(),
+        Music3()
+    ]
+    modeCount = len(runModes) + 1
     
     if mode.value > 0:
         runModes[mode.value - 1].start()
 
     while True:
         try:
-            print(aMag.value)
+            # print(aMag.value)
             if aMag.value > 2: # trigger mode switching
                 if mode.value > 0: # if current mode is not 0
                     runModes[mode.value - 1].stop()
