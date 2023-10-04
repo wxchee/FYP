@@ -12,9 +12,13 @@ aX = Value('d', 0.0)
 aY = Value('d', 0.0)
 aZ = Value('d', 0.0)
 
-# mode 0 only shared variables
+# Music1 only shared variables
 goalFreq = Value('d', C_Major[0])
 goalAmp = Value('d', 0.0) 
+
+def resetMusic1():
+    goalFreq.value = C_Major[0]
+    goalAmp.value = 0.0
 
 def log():
     while True:

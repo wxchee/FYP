@@ -7,76 +7,69 @@ from math import floor, ceil, copysign
 import shared
 from shared import aMag, mode
 
-# from Music1 import Music1
+from Music1 import Music1
 from Music2 import Music2
 from Music3 import Music3
 
-# mode 0 dependent
-from tools import PATTERN1, NOTES
-from shared import goalFreq, goalAmp, rotMag
-pi = 0
-ni = 0
+from multiprocessing import Process
 
-dt = 0
-prevT = 0
-curSecond = 0
-pi = ni = 0
+# mode 0 dependent
+from shared import goalFreq, goalAmp, rotMag
 
 REFRESH_RATE = 0.02 # ~10ms
 
+activeMusic = None
+activeP = None
+
+
 def run():
-    # sounddevice has issue working with multiprocessing's Process when import onto global level
-    # solution: import within function scope 
-    # https://blog.csdn.net/NormanBeita/article/details/106499473
-    # import sounddevice as sd
     print('start control')
     
     runModes = [
-        # Music2(),
-        Music3()
+        Music1,
+        Music2,
+        # Music3
     ]
-    modeCount = len(runModes) + 1
-    
-    if mode.value > 0:
-        runModes[mode.value - 1].start()
+    modeCount = len(runModes)
+
+    # initialise the first process
+    activeMusic = runModes[mode.value]()
+    activeMusic.start()
+
+    activeP = Process(target=activeMusic.run)
+    activeP.start()
 
     while True:
         try:
-            # print(aMag.value)
             if aMag.value > 2: # trigger mode switching
-                if mode.value > 0: # if current mode is not 0
-                    runModes[mode.value - 1].stop()
+                print('aMag', aMag.value)
+                activeP.terminate() # terminate current Music Process
+                print('current run process terminates')
+                activeMusic.stop()
+                print('current Music instance stop')
                 
-                targetMode = (mode.value + 1) % modeCount
-
-                if targetMode > 0: # if new mode is not zero
-                    runModes[targetMode - 1].start()
+                activeP = None
+                activeMusic = None  # free memory from current Music instance
                 
-                mode.value = targetMode
+                print('wait for current active music to release outstream')
+                sleep(1) #
+                print('done')
 
-                print('switch to new mode {}'.format(mode.value))
+                mode.value = (mode.value + 1) % modeCount
+
+                activeMusic = runModes[mode.value]() # initialise new Music instance
+                
+
+                activeP = Process(target=activeMusic.run)
+                
+                print('mode switch to {}'.format(mode.value))
                 sleep(2) # give a buffer for subsequent switch motion, to prevent wrong triggered due to inertia
-
-            if mode.value > 0:
-                runModes[mode.value - 1].run()
-            else: 
-                # mode 0 only custom control
-                global dt, prevT, curSecond, pi, ni
-                if curSecond >= 1000:
-                    curSecond = 0
-                    if pi == len(PATTERN1["pattern"]) - 1:
-                        ni = (ni + 1) % len(PATTERN1["notes"])
-
-                    pi = (pi + 1) % len(PATTERN1["pattern"])
-
-                    goalFreq.value = NOTES[PATTERN1["notes"][ni] + PATTERN1["pattern"][pi]]
-
-
-                goalAmp.value = min(1, max(0, (rotMag.value - 0.03)) / 2)
-
-            dt = (time() - prevT) * 1000 * rotMag.value / 0.5
-            curSecond += dt
-            prevT = time()
+                
+                print('sleep done')
+                activeMusic.start()
+                print('start instance')
+                activeP.start()
+                print('start process')
 
         except KeyboardInterrupt:
                 print("stop music thread.")

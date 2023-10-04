@@ -6,8 +6,9 @@ from time import time, sleep
 
 import numpy as np
 import sys
-from shared import rotMag, mode, goalFreq, goalAmp
+from shared import rotMag, mode, goalFreq, goalAmp, resetMusic1
 
+from tools import PATTERN1, NOTES
 
 
 # approx. stream requested frame size in rpi: 512
@@ -26,9 +27,6 @@ class Music1:
 
         self.amplitude = 0
         self.amp_duration = 0.15
-        
-        # goalFreq.value = C_Major[0]
-        # goalAmp.value = 1
 
         self.cross_wave = None
         self.cross_wavelengh = 0
@@ -39,9 +37,6 @@ class Music1:
         self.next_state = STREAM_STATE.IDLE
 
         self.outstream = None
-
-        self.init() # only call this if Music1 is instantiated via Process in main.py
-
         
     def _callback(self, outdata, frames, time, status):
         if (status):
@@ -119,7 +114,10 @@ class Music1:
 
         return cross_wave, cross_wavelengh
 
-    def init(self):
+    def start(self):
+        # sounddevice has issue working with multiprocessing's Process when import onto global level
+        # solution: import within function scope 
+        # https://blog.csdn.net/NormanBeita/article/details/106499473
         import sounddevice as sd
         self.dt = 0
         self.prevT = time()
@@ -131,12 +129,34 @@ class Music1:
             callback= lambda *args: self._callback(*args)
         )
 
+        self.outstream.start()
+
     def run(self):
+        dt = 0
+        prevT = 0
+        curSecond = 0
+        pi = ni = 0
+
         while True:
-            if mode.value == 0:
-                if not self.outstream.active:
-                    self.outstream.start()
-            else:
-                if self.outstream.active:
-                    self.outstream.stop()
-                sleep(0.2)
+            print('run m1')
+            if curSecond >= 1000:
+                curSecond = 0
+                if pi == len(PATTERN1["pattern"]) - 1:
+                    ni = (ni + 1) % len(PATTERN1["notes"])
+
+                pi = (pi + 1) % len(PATTERN1["pattern"])
+
+                goalFreq.value = NOTES[PATTERN1["notes"][ni] + PATTERN1["pattern"][pi]]
+
+
+            goalAmp.value = min(1, max(0, (rotMag.value - 0.03)) / 2)
+
+            dt = (time() - prevT) * 1000 * rotMag.value / 0.5
+            curSecond += dt
+            prevT = time()
+
+            sleep(0.1)
+
+    def stop(self):
+        self.outstream.close()
+        resetMusic1()

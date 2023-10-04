@@ -28,21 +28,21 @@ min_sample_chunk = 1000
 
 class Music3:
     def __init__(self):
-        import sounddevice as sd
-        self.ostream_tick = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        self.ostream_x1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.ostream_x2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        self.ostream_y1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
-        self.ostream_y2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
-        self.ostream_z1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
-        self.ostream_z2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
-        # self.ostream_tick = None
-        # self.ostream_x1 = None
-        # self.ostream_x2 = None
-        # self.ostream_y1 = None
-        # self.ostream_y2 = None
-        # self.ostream_z1 = None
-        # self.ostream_z2 = None
+        # import sounddevice as sd
+        # self.ostream_tick = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        # self.ostream_x1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        # self.ostream_x2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+        # self.ostream_y1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
+        # self.ostream_y2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
+        # self.ostream_z1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
+        # self.ostream_z2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
+        self.ostream_tick = None
+        self.ostream_x1 = None
+        self.ostream_x2 = None
+        self.ostream_y1 = None
+        self.ostream_y2 = None
+        self.ostream_z1 = None
+        self.ostream_z2 = None
 
         self.init_t = 0
         self.cur_t = 0
@@ -66,13 +66,6 @@ class Music3:
                 # "d": np.zeros(PERIOD),
                 "f": 0
             }
-
-        # self.tracks[0]["d"] = np.tile(self.tracks[0]["d0"], INTERVAL)
-        # self.tracks[0]["d"] = np.tile(self.tracks[0]["d0"], INTERVAL)
-        # self.tracks[0]["d"] = np.tile(self.tracks[0]["d0"], INTERVAL)
-        # self.tracks[0]["d"] = np.tile(self.tracks[0]["d0"], INTERVAL)
-        # self.tracks[0]["d"] = np.tile(self.tracks[0]["d0"], INTERVAL)
-        # self.tracks[0]["d"] = np.tile(self.tracks[0]["d0"], INTERVAL)
 
 
     def _callback(self, outdata, frames, paT, status, i):
@@ -100,6 +93,7 @@ class Music3:
 
 
     def start(self):
+        import sounddevice as sd
         self.init_t = time()
         # self.cur_t = 0
         self.last_sync = 0
@@ -108,13 +102,13 @@ class Music3:
             self.tracks[i]["d"] = np.zeros(PERIOD)
             self.tracks[i]["f"] = 0
 
-        # self.ostream_tick = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        # self.ostream_x1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        # self.ostream_x2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        # self.ostream_y1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
-        # self.ostream_y2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
-        # self.ostream_z1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
-        # self.ostream_z2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
+        self.ostream_tick = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.ostream_x1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.ostream_x2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+        self.ostream_y1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
+        self.ostream_y2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
+        self.ostream_z1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
+        self.ostream_z2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
         
         self.ostream_tick.start()
         self.ostream_x1.start()
@@ -126,38 +120,40 @@ class Music3:
 
     
     def stop(self):
-        self.ostream_tick.stop()
-        self.ostream_x1.stop()
-        self.ostream_x2.stop()
-        self.ostream_y1.stop()
-        self.ostream_y2.stop()
-        self.ostream_z1.stop()
-        self.ostream_z2.stop()
+        self.ostream_tick.close()
+        self.ostream_x1.close()
+        self.ostream_x2.close()
+        self.ostream_y1.close()
+        self.ostream_y2.close()
+        self.ostream_z1.close()
+        self.ostream_z2.close()
 
     def run(self):
-        # import sounddevice as sd
-        # print(rotMag.value, aX.value, aY.value, aZ.value)
-        print('x', abs(aX.value), 'y', abs(aY.value), 'z', abs(aZ.value))
-        if rotMag.value >= 5:
-            cur_f = ((time() - self.init_t) * 44100) % PERIOD
-            print('rot at', cur_f)
-            
-            i = -1
-            if abs(aX.value) > 0.75:
-                i = 1 if aX.value < 0 else 2
-            elif abs(aY.value) > 0.75:
-                i = 3 if aY.value < 0 else 4
-            elif abs(aZ.value) > 0.75:
-                i = 5 if aZ.value < 0 else 6
-
-
-            if i > 0:
-                print('target', i)
+        while True:
+            print('run m3')
+            # import sounddevice as sd
+            # print(rotMag.value, aX.value, aY.value, aZ.value)
+            print('x', abs(aX.value), 'y', abs(aY.value), 'z', abs(aZ.value))
+            if rotMag.value >= 5:
+                cur_f = ((time() - self.init_t) * 44100) % PERIOD
+                print('rot at', cur_f)
                 
-                # cur_f = ((time() - self.init_t) * 44100) % PERIOD
-                target_slot_i = floor(cur_f / SLOT_SIZE)
-                start = target_slot_i * SLOT_SIZE
-                print(i, 'add at', target_slot_i)
-                self.tracks[i]["d"][start:(start + SLOT_SIZE)] = self.tracks[i]["d0"]
-                # sd.play(self.tracks[i]["d0"], fs) 
-            sleep(1)
+                i = -1
+                if abs(aX.value) > 0.75:
+                    i = 1 if aX.value < 0 else 2
+                elif abs(aY.value) > 0.75:
+                    i = 3 if aY.value < 0 else 4
+                elif abs(aZ.value) > 0.75:
+                    i = 5 if aZ.value < 0 else 6
+
+
+                if i > 0:
+                    print('target', i)
+                    
+                    # cur_f = ((time() - self.init_t) * 44100) % PERIOD
+                    target_slot_i = floor(cur_f / SLOT_SIZE)
+                    start = target_slot_i * SLOT_SIZE
+                    print(i, 'add at', target_slot_i)
+                    self.tracks[i]["d"][start:(start + SLOT_SIZE)] = self.tracks[i]["d0"]
+                    # sd.play(self.tracks[i]["d0"], fs) 
+                sleep(1)
