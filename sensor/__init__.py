@@ -1,7 +1,7 @@
 import math
 import numpy as np
 from math import copysign, sqrt
-from shared import rotDir, rotMag, aMag, aX, aY, aZ, yaw
+from shared import rotMag, aMag, aX, aY, aZ
 from time import time
 
 class Sensor:
@@ -39,22 +39,22 @@ class Sensor:
 
 
     def set_gyro(self, gX, gY, gZ):
-        global yaw
+        # global yaw
         self._dt = time() - self._prevTime
 
-        newZ = yaw.value + (gZ * self._dt) / np.pi * 180
-        if (newZ < 0):
-            yaw.value = 360 + newZ
-        elif newZ > 360:
-            yaw.value = newZ - 360
-        else:
-            yaw.value = newZ
+        # newZ = yaw.value + (gZ * self._dt) / np.pi * 180
+        # if (newZ < 0):
+        #     yaw.value = 360 + newZ
+        # elif newZ > 360:
+        #     yaw.value = newZ - 360
+        # else:
+        #     yaw.value = newZ
             
         gMags = [abs(gX), abs(gY), abs(gZ)]
         g1, g2, s = sorted(gMags, reverse=True)
-        i1 = gMags.index(g1)
+        # i1 = gMags.index(g1)
 
-        rotDir.value = int(copysign(1, [gX, gY, gX][i1]))
+        # rotDir.value = int(copysign(1, [gX, gY, gX][i1]))
         rotMagnitude = sqrt(g1 * g1 + g2 * g2)
 
         self._rotMagList.append(rotMagnitude)
@@ -62,8 +62,7 @@ class Sensor:
         if len(self._rotMagList) > 4:
             self._rotMagList.pop(0)
 
-        rotMag.value = min(5, sum(self._rotMagList) / len(self._rotMagList))
-        
+        rotMag.value = min(10, sum(self._rotMagList) / len(self._rotMagList))
         self._prevTime = time()
     
     def set_acc(self, x, y, z):

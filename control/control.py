@@ -20,8 +20,8 @@ def run():
     modeIndex = 0
 
     runModes = [
-        Music3Lite,
         Music3,
+        Music3Lite,
         Music1,
         Music2
     ]
@@ -39,10 +39,14 @@ def run():
         try:
             if aMag.value > 2: # trigger mode switching
                 print('aMag', aMag.value)
-                activeP.terminate() # terminate current Music Process
-                print('current run process terminates')
+                aMag.value = 0
+
                 activeMusic.stop()
                 print('current Music instance stop')
+                
+                activeP.terminate() # terminate current Music Process
+                print('current run process terminates')
+                
                 
                 activeP = None
                 activeMusic = None  # free memory from current Music instance

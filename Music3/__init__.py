@@ -7,7 +7,7 @@ from shared import rotMag, aX, aY, aZ
 
 from Music3.stream import Stream
 
-from multiprocessing import Array
+from multiprocessing import Array, Value
 
 
 AUDIO_FILES = [
@@ -29,16 +29,18 @@ SYNC_INTERVAL = 2
 
 PERIOD = SLOT_SIZE * INTERVAL
 
-min_sample_chunk = 1000
+min_sample_chunk = 500
 
 # update 
 ds = []
 for i in range(len(AUDIO_FILES)):
     ds.append(Array('d', PERIOD))
 
+init_t = Value('d', 0.0)
+
 class Music3:
     def __init__(self):
-        self.init_t = 0
+        # self.init_t = 0
         self.last_sync = 0
         
         self.streams = []
@@ -70,11 +72,11 @@ class Music3:
         # synchronize all streams
         # use the tick stream as reference
         
-        cur_t = paT.currentTime - self.init_t
+        cur_t = paT.currentTime - init_t.value
 
         if not self.streams[i].hadSync:
             self.streams[i].syncFirst(cur_t, SAMPLE_RATE_M3)
-            print('first sync')
+            # print('first sync')
         elif (cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every SYNC_INTERVAL seconds
             self.streams[i].sync(cur_t, SAMPLE_RATE_M3)
             # print(i, 'sync')
@@ -93,7 +95,7 @@ class Music3:
 
     def start(self):
         import sounddevice as sd
-        self.init_t = time()
+        # self.init_t = time()
         self.last_sync = 0
 
         # the callback function argument need to be constant, thus unwrap the loop
@@ -113,43 +115,42 @@ class Music3:
     def stop(self):
         for i in range(len(self.streams)):
             self.streams[i].outstream.close()
+            ds[i] = np.zeros(PERIOD)
 
     def run(self):
         import sounddevice as sd
+        init_t.value = time()
         while True:
-            # print(rotMag.value, aX.value, aY.value, aZ.value)
-            # print('x', abs(aX.value), 'y', abs(aY.value), 'z', abs(aZ.value))
-            if rotMag.value >= 5:
-                cur_f = ((time() - self.init_t) * SAMPLE_RATE_M3) % PERIOD
-                print('rot at', cur_f)
+            # print(aX.value, aY.value, aZ.value)
+            i = -1
+            if abs(aX.value) > 0.9:
+                i = 1 if aX.value < 0 else 2
+            elif abs(aY.value) > 0.9:
+                i = 3 if aY.value < 0 else 4
+            elif abs(aZ.value) > 0.9:
+                i = 5 if aZ.value < 0 else 6
+
+            if i > 0 and rotMag.value > 7.5:
+                cur_f = ((time() - init_t.value) * SAMPLE_RATE_M3) % PERIOD
+                target_slot_i = floor(cur_f / SLOT_SIZE)
                 
-                i = -1
-                if abs(aX.value) > 0.75:
-                    i = 1 if aX.value < 0 else 2
-                elif abs(aY.value) > 0.75:
-                    i = 3 if aY.value < 0 else 4
-                elif abs(aZ.value) > 0.75:
-                    i = 5 if aZ.value < 0 else 6
+                # from empire test, delay seems to be 1 slot(s) later consistently
+                diff = target_slot_i + 1
+                
+                if diff < 0:
+                    target_slot_i = INTERVAL + diff
+                elif diff >= INTERVAL:
+                    target_slot_i = diff - INTERVAL
+                else:
+                    target_slot_i = diff
+                
+                print(i, 'add at', target_slot_i)
 
+                start_frame = SLOT_SIZE * target_slot_i
+                end_frame = start_frame + SLOT_SIZE
+                ds[i][start_frame:end_frame] = self.streams[i].d0
 
-                if i > 0:
-                    print('target', i)
-                    target_slot_i = floor(cur_f / SLOT_SIZE)
-                    
-                    # from empire test, delay seems to be 3 slots later consistently
-                    delay = 3
-                    diff = target_slot_i - delay
-                    
-                    if diff < 0:
-                        target_slot_i = INTERVAL + diff
-                    else:
-                        target_slot_i = diff
-                    
-                    print(i, 'add at', target_slot_i)
-
-                    start_frame = SLOT_SIZE * target_slot_i
-                    end_frame = start_frame + SLOT_SIZE
-                    ds[i][start_frame:end_frame] = self.streams[i].d0
-
-                    sd.play(self.streams[i].d0, SAMPLE_RATE_M3)
+                sd.play(self.streams[i].d0, SAMPLE_RATE_M3)
                 sleep(1)
+            
+            # sleep(0.1)

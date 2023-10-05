@@ -9,9 +9,9 @@ from math import ceil, floor
 min_sample_chunk = 1000
 
 AUDIO_FILES = [
-    'audios/track_drum.wav',
-    'audios/track_piano.wav',
-    'audios/track_mag_string.wav'
+    'audios/music2/track_drum.wav',
+    'audios/music2/track_piano.wav',
+    'audios/music2/track_mag_string.wav'
 ]
 
 from multiprocessing import Value
