@@ -1,14 +1,21 @@
 from tools import get_wave_by_freq, get_time_array, get_crossfade_filter, fs
-from tools import C_Major, STREAM_STATE
-# , PATTERN1, NOTES
+from tools import C_Major, STREAM_STATE, PATTERN1, NOTES
 
 from time import time, sleep
 
 import numpy as np
 import sys
-from shared import rotMag, mode, goalFreq, goalAmp, resetMusic1
 
-from tools import PATTERN1, NOTES
+from shared import rotMag, mode
+
+from multiprocessing import Value
+
+goalFreq = Value('d', C_Major[0])
+goalAmp = Value('d', 0.0) 
+
+def resetMusic1():
+    goalFreq.value = C_Major[0]
+    goalAmp.value = 0.0
 
 
 # approx. stream requested frame size in rpi: 512

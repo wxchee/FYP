@@ -14,7 +14,7 @@ from Music3 import Music3
 from multiprocessing import Process
 
 # mode 0 dependent
-from shared import goalFreq, goalAmp, rotMag
+from shared import rotMag
 
 REFRESH_RATE = 0.02 # ~10ms
 
@@ -26,9 +26,9 @@ def run():
     print('start control')
     
     runModes = [
+        Music3,
         Music1,
-        Music2,
-        # Music3
+        Music2
     ]
     modeCount = len(runModes)
 

@@ -1,4 +1,3 @@
-from tools import fs
 import numpy as np
 import soundfile as sf
 from time import time, sleep
@@ -8,7 +7,7 @@ from shared import rotMag, aX, aY, aZ
 
 AUDIO_FILES = [
     'audios/music3/0_africanclave.wav',
-    'audios/music3/x1_bongo1.wav',
+    'audios/music3/x1_guiro.wav',
     'audios/music3/x2_bongo3.wav',
     'audios/music3/y1_cowbell1.wav',
     'audios/music3/y2_cowbell2.wav',
@@ -17,25 +16,18 @@ AUDIO_FILES = [
 ]
 
 # SLOT_SIZE = 5500
-SLOT_SIZE = 8000
-INTERVAL = 16
+FS_M3 = 22050
+SLOT_SIZE = 10000
+INTERVAL = 8
 
 SYNC_INTERVAL = 2
 
-PERIOD = SLOT_SIZE * 16
+PERIOD = SLOT_SIZE * INTERVAL
 
 min_sample_chunk = 1000
 
 class Music3:
     def __init__(self):
-        # import sounddevice as sd
-        # self.ostream_tick = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        # self.ostream_x1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        # self.ostream_x2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        # self.ostream_y1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
-        # self.ostream_y2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
-        # self.ostream_z1 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
-        # self.ostream_z2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
         self.ostream_tick = None
         self.ostream_x1 = None
         self.ostream_x2 = None
@@ -51,21 +43,34 @@ class Music3:
         self.tracks = {0: None, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None}
         for i, file in enumerate(AUDIO_FILES):
             wav, sr = sf.read(file)
-            print(i, len(wav))
+            print(i, len(wav), sr)
             trimmedWav = wav
 
             if len(wav) < SLOT_SIZE:
                 padOffset = SLOT_SIZE - len(wav)
-                trimmedWav = np.pad(wav, (0, padOffset), 'constant')
+                # trimmedWav = np.pad(wav, (0, padOffset), 'constant')
+                trimmedWav = np.concatenate((wav, np.zeros(padOffset)))
             else:
                 trimmedWav = wav[:SLOT_SIZE]
+                print(i, 'exceed 8000')
 
+            
+            
             self.tracks[i] = {
                 "d0": trimmedWav,
                 "d": np.tile(trimmedWav, INTERVAL),
                 # "d": np.zeros(PERIOD),
-                "f": 0
+                "f": 0,
+                "s0": 0
             }
+
+            print(i, 'final length: ', len(trimmedWav), self.tracks[i]['d'][:20])
+
+            if i == 0:
+                lastSlotIndex = int((INTERVAL - 1) / INTERVAL * PERIOD)
+                print('last slot index', lastSlotIndex)
+                self.tracks[0]["d"][:lastSlotIndex] = self.tracks[0]["d"][:lastSlotIndex] * 0.5
+                self.tracks[0]["d"][lastSlotIndex:] = self.tracks[0]["d"][lastSlotIndex:] * 0.15
 
 
     def _callback(self, outdata, frames, paT, status, i):
@@ -73,14 +78,19 @@ class Music3:
         # use the tick stream as reference
         
         cur_t = paT.currentTime - self.init_t
-        
         # if any stream current
-        if (cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every SYNC_INTERVAL seconds
-            self.tracks[i]['f'] = floor(cur_t * 44100.0) % PERIOD
+        if self.tracks[i]["s0"] < 1:
+            self.tracks[i]['f'] = floor(cur_t * FS_M3) % PERIOD
+            self.tracks[i]["s0"] = 1
+            # print(i, 'first synced')
+        elif (cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every SYNC_INTERVAL seconds
+            self.tracks[i]['f'] = floor(cur_t * FS_M3) % PERIOD
+            # print(i, 'sync')
 
         if i == 0:
             self.last_sync = cur_t % SYNC_INTERVAL
 
+        print(i, self.tracks[i]['d'][:20])
         if self.tracks[i]['f'] + frames > PERIOD:
             remain_frames = frames - (PERIOD - self.tracks[i]['f'])
             new_wav = np.concatenate((self.tracks[i]['d'][self.tracks[i]['f']:], self.tracks[i]['d'][:remain_frames]))
@@ -99,16 +109,16 @@ class Music3:
         self.last_sync = 0
 
         for i in range(1, 7):
-            self.tracks[i]["d"] = np.zeros(PERIOD)
+            # self.tracks[i]["d"] = np.zeros(PERIOD)
             self.tracks[i]["f"] = 0
 
-        self.ostream_tick = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        self.ostream_x1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.ostream_x2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        self.ostream_y1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
-        self.ostream_y2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
-        self.ostream_z1 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
-        self.ostream_z2 = sd.OutputStream(samplerate=sr,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
+        self.ostream_tick = sd.OutputStream(samplerate=FS_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.ostream_x1 = sd.OutputStream(samplerate=FS_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.ostream_x2 = sd.OutputStream(samplerate=FS_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+        self.ostream_y1 = sd.OutputStream(samplerate=FS_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
+        self.ostream_y2 = sd.OutputStream(samplerate=FS_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
+        self.ostream_z1 = sd.OutputStream(samplerate=FS_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
+        self.ostream_z2 = sd.OutputStream(samplerate=FS_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
         
         self.ostream_tick.start()
         self.ostream_x1.start()
@@ -130,10 +140,10 @@ class Music3:
 
     def run(self):
         while True:
-            print('run m3')
+            # print('run m3')
             # import sounddevice as sd
             # print(rotMag.value, aX.value, aY.value, aZ.value)
-            print('x', abs(aX.value), 'y', abs(aY.value), 'z', abs(aZ.value))
+            # print('x', abs(aX.value), 'y', abs(aY.value), 'z', abs(aZ.value))
             if rotMag.value >= 5:
                 cur_f = ((time() - self.init_t) * 44100) % PERIOD
                 print('rot at', cur_f)
@@ -155,5 +165,5 @@ class Music3:
                     start = target_slot_i * SLOT_SIZE
                     print(i, 'add at', target_slot_i)
                     self.tracks[i]["d"][start:(start + SLOT_SIZE)] = self.tracks[i]["d0"]
-                    # sd.play(self.tracks[i]["d0"], fs) 
+                    # sd.play(self.tracks[i]["d0"], FS_M3) 
                 sleep(1)
