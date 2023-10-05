@@ -8,7 +8,6 @@ class Stream:
         self.period = period
 
         self.hadSync = False
-        self.outstream = None
 
 
     def syncFirst(self, t, sr):

@@ -6,7 +6,7 @@ from time import time, sleep
 import numpy as np
 import sys
 
-from shared import rotMag, mode
+from shared import rotMag
 
 from multiprocessing import Value
 

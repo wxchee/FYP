@@ -1,7 +1,5 @@
 from multiprocessing import Value
-from tools import C_Major
 
-mode = Value("i", 0)
 
 yaw = Value('d', 0)
 rotDir = Value('i', 0)

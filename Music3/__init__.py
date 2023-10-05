@@ -21,7 +21,7 @@ AUDIO_FILES = [
 ]
 
 
-sample_rate_m3 = 22050
+SAMPLE_RATE_M3 = 22050
 SLOT_SIZE = 10000
 INTERVAL = 8
 
@@ -73,10 +73,10 @@ class Music3:
         cur_t = paT.currentTime - self.init_t
 
         if not self.streams[i].hadSync:
-            self.streams[i].syncFirst(cur_t, sample_rate_m3)
+            self.streams[i].syncFirst(cur_t, SAMPLE_RATE_M3)
             print('first sync')
         elif (cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every SYNC_INTERVAL seconds
-            self.streams[i].sync(cur_t, sample_rate_m3)
+            self.streams[i].sync(cur_t, SAMPLE_RATE_M3)
             # print(i, 'sync')
 
         if i == 0:
@@ -97,13 +97,13 @@ class Music3:
         self.last_sync = 0
 
         # the callback function argument need to be constant, thus unwrap the loop
-        self.streams[0].outstream = sd.OutputStream(samplerate=sample_rate_m3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        self.streams[1].outstream = sd.OutputStream(samplerate=sample_rate_m3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.streams[2].outstream = sd.OutputStream(samplerate=sample_rate_m3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
-        self.streams[3].outstream = sd.OutputStream(samplerate=sample_rate_m3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
-        self.streams[4].outstream = sd.OutputStream(samplerate=sample_rate_m3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
-        self.streams[5].outstream = sd.OutputStream(samplerate=sample_rate_m3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
-        self.streams[6].outstream = sd.OutputStream(samplerate=sample_rate_m3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
+        self.streams[0].outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.streams[1].outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.streams[2].outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+        self.streams[3].outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 3))
+        self.streams[4].outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 4))
+        self.streams[5].outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 5))
+        self.streams[6].outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M3,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 6))
         
         for i in range(len(self.streams)):
             self.streams[i].outstream.start()
@@ -120,7 +120,7 @@ class Music3:
             # print(rotMag.value, aX.value, aY.value, aZ.value)
             # print('x', abs(aX.value), 'y', abs(aY.value), 'z', abs(aZ.value))
             if rotMag.value >= 5:
-                cur_f = ((time() - self.init_t) * sample_rate_m3) % PERIOD
+                cur_f = ((time() - self.init_t) * SAMPLE_RATE_M3) % PERIOD
                 print('rot at', cur_f)
                 
                 i = -1
@@ -151,5 +151,5 @@ class Music3:
                     end_frame = start_frame + SLOT_SIZE
                     ds[i][start_frame:end_frame] = self.streams[i].d0
 
-                    sd.play(self.streams[i].d0, sample_rate_m3)
+                    sd.play(self.streams[i].d0, SAMPLE_RATE_M3)
                 sleep(1)
