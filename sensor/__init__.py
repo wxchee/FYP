@@ -30,7 +30,7 @@ class Sensor:
                 
                 aX, aY, aZ = self._sense.get_accelerometer_raw().values()
                 self.set_acc(aX, aY, aZ)
-                print('sensor run')
+                # print('sensor run')
 
         else:
             from sensor.sensor_receiver import SensorReceiver
