@@ -43,10 +43,9 @@ def run():
 
                 activeMusic.stop()
                 print('current Music instance stop')
-                
+
                 activeP.terminate() # terminate current Music Process
                 print('current run process terminates')
-                
                 
                 activeP = None
                 activeMusic = None  # free memory from current Music instance

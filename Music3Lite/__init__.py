@@ -1,7 +1,7 @@
 import numpy as np
 from time import sleep
 import soundfile as sf
-from Music3 import AUDIO_FILES, SLOT_SIZE, PERIOD, SAMPLE_RATE_M3
+from Music3 import AUDIO_FILES, SLOT_SIZE, PERIOD, SAMPLE_RATE_M3, rotMagTh
 
 from shared import rotMag, aX, aY, aZ
 
@@ -35,18 +35,17 @@ class Music3Lite:
         import sounddevice as sd
 
         while True:
-            if rotMag.value >= 5:
-                i = -1
-                if abs(aX.value) > 0.75:
-                    i = 1 if aX.value < 0 else 2
-                elif abs(aY.value) > 0.75:
-                    i = 3 if aY.value < 0 else 4
-                elif abs(aZ.value) > 0.75:
-                    i = 5 if aZ.value < 0 else 6
+            i = -1
+            if abs(aX.value) > 0.75:
+                i = 1 if aX.value < 0 else 2
+            elif abs(aY.value) > 0.75:
+                i = 3 if aY.value < 0 else 4
+            elif abs(aZ.value) > 0.75:
+                i = 5 if aZ.value < 0 else 6
 
-
-                if i > 0:
-                    print('play ', i)
-                    sd.play(self.ds0[i], SAMPLE_RATE_M3)
-                
-                sleep(0.5)
+            if i > 0 and rotMag.value > rotMagTh:
+                print('play ', i)
+                sd.play(self.ds0[i], SAMPLE_RATE_M3)
+                sleep(1)
+        
+            sleep(0.001)
