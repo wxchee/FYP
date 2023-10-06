@@ -1,7 +1,7 @@
 import numpy as np
 import soundfile as sf
 from time import time, sleep
-from math import floor
+from math import floor, ceil
 
 from shared import rotMag, aX, aY, aZ
 
@@ -64,7 +64,6 @@ class Music3:
 
             if i == 0:
                 # customize background stream's track
-
                 ds[0][:] = list(trimmedWav) * INTERVAL
                 lastSlotIndex = int((INTERVAL - 1) / INTERVAL * PERIOD)
                 ds[0][:lastSlotIndex] = np.array(ds[0][:lastSlotIndex]) * 0.5
@@ -77,7 +76,7 @@ class Music3:
         # synchronize all streams
         # use the tick stream as reference
         
-        cur_t = paT.currentTime - init_t.value
+        cur_t = time() - init_t.value
 
         if not self.streams[i].hadSync:
             self.streams[i].syncFirst(cur_t, SAMPLE_RATE_M3)
@@ -140,17 +139,19 @@ class Music3:
 
             if i > 0 and rotMag.value > rotMagTh:
                 cur_f = ((time() - init_t.value) * SAMPLE_RATE_M3) % PERIOD
-                target_slot_i = floor(cur_f / SLOT_SIZE)
+                target_slot_d = cur_f / SLOT_SIZE
+                th = target_slot_d - int(target_slot_d)
+                target_slot_i = floor(target_slot_d) if th < 0.5 else ceil(target_slot_d)
                 
-                # from empire test, delay seems to be 1 slot(s) later consistently
-                diff = target_slot_i + 1
+                target_slot_i = target_slot_i % INTERVAL
+                # diff = target_slot_i
                 
-                if diff < 0:
-                    target_slot_i = INTERVAL + diff
-                elif diff >= INTERVAL:
-                    target_slot_i = diff - INTERVAL
-                else:
-                    target_slot_i = diff
+                # if diff < 0:
+                #     target_slot_i = INTERVAL + diff
+                # elif diff >= INTERVAL:
+                #     target_slot_i = diff - INTERVAL
+                # else:
+                #     target_slot_i = diff
                 
                 print(i, 'add at', target_slot_i)
 
