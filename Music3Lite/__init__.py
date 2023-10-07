@@ -46,6 +46,6 @@ class Music3Lite:
             if i > 0 and rotMag.value > rotMagTh:
                 print('play ', i)
                 sd.play(self.ds0[i], SAMPLE_RATE_M3)
-                sleep(1)
+                sleep(0.5)
         
             sleep(0.001)

@@ -9,6 +9,7 @@ from Music1 import Music1
 from Music2 import Music2
 from Music3 import Music3
 from Music3Lite import Music3Lite
+from MusicTest import MusicTest
 
 from multiprocessing import Process
 
@@ -20,6 +21,7 @@ def run():
     modeIndex = 0
 
     runModes = [
+        # MusicTest,
         Music3,
         Music3Lite,
         Music1,

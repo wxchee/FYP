@@ -2,11 +2,12 @@ import numpy as np
 from math import floor
 
 class Stream:
-    def __init__(self, d0, period):
+    def __init__(self, i, d0, period):
+        self.i = i
         self.f = 0
         self.d0 = d0
         self.period = period
-
+        self.outstream = None
         self.hadSync = False
 
 
