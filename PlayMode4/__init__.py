@@ -1,46 +1,31 @@
 import numpy as np
 import soundfile as sf
 from time import time, sleep
-from math import floor, ceil
-
-from shared import rotMag, aX, aY, aZ
-
-from Music3.stream import Stream
-
+import math
 from multiprocessing import Array, Value
 
-AUDIO_FILES = [
-    'audios/music3_acoustic/0_africanclave.wav',
-    'audios/music3_acoustic/1_clap.wav',
-    'audios/music3_acoustic/2_hat.wav',
-    'audios/music3_acoustic/3_tom.wav',
-    'audios/music3_acoustic/4_kick.wav',
-    'audios/music3_acoustic/5_snare.wav',
-    'audios/music3_acoustic/6_block.wav',
-]
+from shared import rotMag, aDir
+from PlayMode4.stream import Stream
+from PlayMode3 import AUDIO_FILES, SLOT_SIZE, SAMPLE_RATE_M3, rotMagTh
 
 
-SAMPLE_RATE_M3 = 44100
-SLOT_SIZE = 10000
+
 INTERVAL = 8
+PERIOD = SLOT_SIZE * INTERVAL
 
 SYNC_INTERVAL = 2
 
-PERIOD = SLOT_SIZE * INTERVAL
-
 min_sample_chunk = 500
 
-
+# shared variables among processes
 ds = []
 for i in range(len(AUDIO_FILES)):
     ds.append(Array('d', PERIOD))
 
-
 init_t = Value('d', 0.0)
 
-rotMagTh = 5.5
 
-class Music3:
+class PlayMode4:
     def __init__(self):
         self.last_sync = 0
         
@@ -58,7 +43,7 @@ class Music3:
                 print(i, 'exceed 8000')
 
             trimmedWav = np.array(trimmedWav) * 2
-            self.streams.append(Stream(i, trimmedWav, SLOT_SIZE * INTERVAL))
+            self.streams.append(Stream(trimmedWav, PERIOD))
 
 
             if i == 0:
@@ -73,20 +58,15 @@ class Music3:
 
 
     def _callback(self, outdata, frames, paT, status, i):
-        # synchronize all streams
-        # use the tick stream as reference
-        
         cur_t = time() - init_t.value
 
         if not self.streams[i].hadSync:
             self.streams[i].syncFirst(cur_t, SAMPLE_RATE_M3)
-            # print('first sync')
         elif (cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every SYNC_INTERVAL seconds
             self.streams[i].sync(cur_t, SAMPLE_RATE_M3)
-            # print(i, 'sync')
 
         if i == 0:
-            self.last_sync = cur_t % SYNC_INTERVAL
+            self.last_sync = cur_t % SYNC_INTERVAL # use the first stream time as the pivot time to sync timing across all seven streams
         
         outdata[:, 0] = self.streams[i].update_wav(ds[i], frames)
 
@@ -112,7 +92,6 @@ class Music3:
         
         for i in range(len(self.streams)):
             self.streams[i].outstream.start()
-            print(i, 'start')
 
     
     def stop(self):
@@ -127,30 +106,21 @@ class Music3:
         init_t.value = time()
 
         while True:
-            # print(aX.value, aY.value, aZ.value)
-            i = -1
-            if abs(aX.value) > 0.9:
-                i = 1 if aX.value < 0 else 2
-            elif abs(aY.value) > 0.9:
-                i = 3 if aY.value < 0 else 4
-            elif abs(aZ.value) > 0.9:
-                i = 5 if aZ.value < 0 else 6
-
-            if i > 0 and rotMag.value > rotMagTh:
+            if aDir.value > 0 and rotMag.value > rotMagTh:
                 cur_f = ((time() - init_t.value) * SAMPLE_RATE_M3) % PERIOD
                 target_slot_d = cur_f / SLOT_SIZE
                 th = target_slot_d - int(target_slot_d)
-                target_slot_i = floor(target_slot_d) if th < 0.5 else ceil(target_slot_d)
+                target_slot_i = math.floor(target_slot_d) if th < 0.5 else math.ceil(target_slot_d)
                 
                 target_slot_i = target_slot_i % INTERVAL
                 
-                print(i, 'add at', target_slot_i)
+                print('percussive ', aDir.value, ', add at', target_slot_i)
 
                 start_frame = SLOT_SIZE * target_slot_i
                 end_frame = start_frame + SLOT_SIZE
-                ds[i][start_frame:end_frame] = self.streams[i].d0
+                ds[aDir.value][start_frame:end_frame] = self.streams[aDir.value].d0
 
-                sd.play(self.streams[i].d0, SAMPLE_RATE_M3)
+                sd.play(self.streams[aDir.value].d0, SAMPLE_RATE_M3)
                 sleep(0.5)
             
             sleep(0.01)

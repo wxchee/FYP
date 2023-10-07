@@ -1,9 +1,8 @@
 import numpy as np
-from math import floor
+import math
 
 class Stream:
-    def __init__(self, i, d0, period):
-        self.i = i
+    def __init__(self, d0, period):
         self.f = 0
         self.d0 = d0
         self.period = period
@@ -17,7 +16,7 @@ class Stream:
 
 
     def sync(self, t, sr):
-        self.f = floor(t * sr) % self.period
+        self.f = math.floor(t * sr) % self.period
 
 
     def update_wav(self, dRef, frames):

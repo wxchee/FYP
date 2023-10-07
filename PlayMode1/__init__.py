@@ -1,29 +1,28 @@
-from tools import get_wave_by_freq, get_time_array, get_crossfade_filter, fs
-from tools import C_Major, STREAM_STATE, PATTERN1, NOTES
-
 from time import time, sleep
-
 import numpy as np
 import sys
-
-from shared import rotMag
-
 from multiprocessing import Value
 
+from shared import rotMag
+from PlayMode1.tools import get_wave_by_freq, get_time_array, get_crossfade_filter, C_Major, STREAM_STATE, PATTERN1, NOTES
+
+
+# shared variable between play mode process and control process
+# play mode process - monitoring rotation speed and update goalFreq and goalAmp
+# control process - possess outstream threads that read goalFreq and goalAmp
 goalFreq = Value('d', C_Major[0])
 goalAmp = Value('d', 0.0) 
 
-def resetMusic1():
+def resetPlayMode1():
     goalFreq.value = C_Major[0]
     goalAmp.value = 0.0
 
+SAMPLE_RATE_M1 = 44100
 
-# approx. stream requested frame size in rpi: 512
-# approx. stream requested frame size in laptop: 400
-# hence, make every freq wave sample to bigger than 512
+# fix the frames request size during outstream's callback
 min_sample_chunk = 600 # ~13.6ms worth of frame
 
-class Music1:
+class PlayMode1:
     def __init__(self):
         self.dt = 0
         self.prevT = 0
@@ -92,8 +91,8 @@ class Music1:
 
     def get_goal(self, goal_freq):
         global min_sample_chunk
-        cycle = round(min_sample_chunk * goal_freq / fs)
-        goal_wavelength = round(fs / goal_freq * cycle)
+        cycle = round(min_sample_chunk * goal_freq / SAMPLE_RATE_M1)
+        goal_wavelength = round(SAMPLE_RATE_M1 / goal_freq * cycle)
         new_time_array = get_time_array(0, goal_wavelength)
         goal_wave = get_wave_by_freq(goal_freq, 1, new_time_array)
 
@@ -102,15 +101,15 @@ class Music1:
 
     def get_amp_env(self, start_amp, frames):
         dir = 1 if start_amp < goalAmp.value else -1
-        end_amp = start_amp + (goalAmp.value - start_amp) * frames / (fs * self.amp_duration)
+        end_amp = start_amp + (goalAmp.value - start_amp) * frames / (SAMPLE_RATE_M1 * self.amp_duration)
 
         return np.linspace(start_amp, end_amp, frames)
     
 
     def get_cross_fade(self, prev_freq, next_freq):
         global min_sample_chunk
-        cycle = round(min_sample_chunk * 10 * next_freq / fs)
-        cross_wavelengh = round(fs / next_freq * cycle)
+        cycle = round(min_sample_chunk * 10 * next_freq / SAMPLE_RATE_M1)
+        cross_wavelengh = round(SAMPLE_RATE_M1 / next_freq * cycle)
 
         time_array = get_time_array(0, cross_wavelengh)
         prev_wave = get_wave_by_freq(prev_freq, 1, time_array)
@@ -130,7 +129,7 @@ class Music1:
         self.prevT = time()
         
         self.outstream = sd.OutputStream(
-            samplerate=fs,
+            samplerate=SAMPLE_RATE_M1,
             channels=1,
             blocksize=500, # must be smaller than min_sample_chunk
             callback= lambda *args: self._callback(*args)
@@ -166,4 +165,4 @@ class Music1:
 
     def stop(self):
         self.outstream.close()
-        resetMusic1()
+        resetPlayMode1()

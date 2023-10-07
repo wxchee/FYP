@@ -1,11 +1,9 @@
 from multiprocessing import Value
 
-
-# yaw = Value('d', 0)
-# rotDir = Value('i', 0)
 rotMag = Value('d', 0.0)
 
 aMag = Value('d', 0.0)
+aDir = Value('i', -1)
 aX = Value('d', 0.0)
 aY = Value('d', 0.0)
 aZ = Value('d', 0.0)

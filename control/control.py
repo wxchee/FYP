@@ -2,18 +2,15 @@
 # - monitor accelerometer magnitude, if acc magnitude exceed threshold, increment to next mode
 
 from time import sleep
-
-from shared import aMag
-
-from Music1 import Music1
-from Music2 import Music2
-from Music3 import Music3
-from Music3Lite import Music3Lite
-from MusicTest import MusicTest
-
 from multiprocessing import Process
 
-REFRESH_RATE = 0.02 # ~10ms
+from shared import aMag
+from PlayMode1 import PlayMode1
+from PlayMode2 import PlayMode2
+from PlayMode3 import PlayMode3
+from PlayMode4 import PlayMode4
+
+
 
 def run():
     print('start control')
@@ -21,60 +18,57 @@ def run():
     modeIndex = 0
 
     runModes = [
-        # MusicTest,
-        Music3,
-        Music3Lite,
-        Music1,
-        Music2
+        PlayMode1,
+        PlayMode2,
+        PlayMode3,
+        PlayMode4,
     ]
     modeCount = len(runModes)
 
 
     # initialise the first process
-    activeMusic = runModes[modeIndex]()
-    activeMusic.start()
+    activeMode = runModes[modeIndex]()
+    activeMode.start()
 
-    activeP = Process(target=activeMusic.run)
-    activeP.start()
+    activeModeP = Process(target=activeMode.run)
+    activeModeP.start()
 
     while True:
         try:
             if aMag.value > 2: # trigger mode switching
-                print('aMag', aMag.value)
                 aMag.value = 0
 
-                activeMusic.stop()
-                print('current Music instance stop')
+                activeMode.stop() # close all outstream associated with this play mode
 
-                activeP.terminate() # terminate current Music Process
-                print('current run process terminates')
+                activeModeP.terminate() # terminate current Music Process
+                # print('current run process terminates')
                 
-                activeP = None
-                activeMusic = None  # free memory from current Music instance
+                activeModeP = None
+                activeMode = None  # free memory from current Music instance
                 
-                print('wait for current active music to release outstream')
-                sleep(1) #
-                print('done')
+                # print('wait for current active music to release outstream')
+                # sleep(1) #
+                # print('done')
 
                 modeIndex = (modeIndex + 1) % modeCount
 
-                activeMusic = runModes[modeIndex]() # initialise new Music instance
+                activeMode = runModes[modeIndex]() # initialise new Music instance
                 
-
-                activeP = Process(target=activeMusic.run)
+                activeModeP = Process(target=activeMode.run)
                 
                 print('mode switch to {}'.format(modeIndex))
-                sleep(2) # give a buffer for subsequent switch motion, to prevent wrong triggered due to inertia
+                sleep(1) # give a buffer for subsequent switch motion, to prevent wrong triggered due to inertia
                 
-                print('sleep done')
-                activeMusic.start()
-                print('start instance')
-                activeP.start()
-                print('start process')
+                # print('sleep done')
+                activeMode.start()
+                # print('start instance')
+                activeModeP.start()
+
+                print('start play mode ', modeIndex)
 
         except KeyboardInterrupt:
                 print("stop music thread.")
         
         
-        sleep(REFRESH_RATE)
+        sleep(0.02)
         

@@ -1,12 +1,11 @@
 import soundfile as sf
 import numpy as np
-from tools import fs
-from shared import aX, aY, aZ, rotMag
-
 import sys
 from time import time, sleep
 from math import ceil, floor
-min_sample_chunk = 1000
+from multiprocessing import Value
+
+from shared import aX, aY, aZ, rotMag
 
 AUDIO_FILES = [
     'audios/music2/track_drum.wav',
@@ -14,16 +13,17 @@ AUDIO_FILES = [
     'audios/music2/track_mag_string.wav'
 ]
 
-from multiprocessing import Value
-
-vols = [Value('d', 0.0), Value('d', 0.0), Value('d', 0.0)]
+vols = [Value('i', 0), Value('i', 0), Value('i', 0)]
 
 SYNC_INTERVAL = 2
 
-
 FRAME_CAP = 682760
 
-class Music2:
+SAMPLE_RATE_M2 = 44100
+
+min_sample_chunk = 1000
+
+class PlayMode2:
     def __init__(self):
         self.freq = 0
 
@@ -89,7 +89,7 @@ class Music2:
         dir = 1 if start_amp < goal else -1
         diff = goal - start_amp
         
-        end_amp = start_amp + diff * min(1, frames / (fs * self.volume_fade_duration))
+        end_amp = start_amp + diff * min(1, frames / (SAMPLE_RATE_M2 * self.volume_fade_duration))
         
         amp_wave = np.linspace(start_amp, end_amp, frames)
         if dir == 1:
@@ -99,7 +99,7 @@ class Music2:
             if (end_amp > goal):
                 return amp_wave
 
-        diff_frames = int(abs(diff * fs * self.volume_fade_duration))
+        diff_frames = int(abs(diff * SAMPLE_RATE_M2 * self.volume_fade_duration))
 
         return np.linspace(start_amp, goal, diff_frames)
     
@@ -109,9 +109,9 @@ class Music2:
         self.init_t = time()
         self.last_sync = 99
 
-        self.outstream = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
-        self.outstream2 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
-        self.outstream3 = sd.OutputStream(samplerate=fs,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
+        self.outstream = sd.OutputStream(samplerate=SAMPLE_RATE_M2,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 0))
+        self.outstream2 = sd.OutputStream(samplerate=SAMPLE_RATE_M2,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 1))
+        self.outstream3 = sd.OutputStream(samplerate=SAMPLE_RATE_M2,channels=1,blocksize=min_sample_chunk,callback= lambda *args: self._callback(*args, 2))
 
         self.outstream.start()
         self.outstream2.start()
@@ -120,11 +120,11 @@ class Music2:
     def run(self):
         while True:
             if rotMag.value > 4:
-                vols[0].value = vols[1].value = vols[2].value = 1.0
+                vols[0].value = vols[1].value = vols[2].value = 1
             else:
-                vols[0].value = abs(aX.value) if abs(aX.value) > 0.5 else 0.0
-                vols[1].value = abs(aY.value) if abs(aY.value) > 0.5 else 0.0
-                vols[2].value = abs(aZ.value) if abs(aZ.value) > 0.5 else 0.0
+                vols[0].value = 1 if abs(aX.value) > 0.5 else 0
+                vols[1].value = 1 if abs(aY.value) > 0.5 else 0
+                vols[2].value = 1 if abs(aZ.value) > 0.5 else 0
             
             sleep(0.05)
     
