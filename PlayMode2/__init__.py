@@ -48,9 +48,9 @@ class PlayMode2:
         if (status):
             print('STATUS: ', status, sys.stderr)
         
-        cur_t = paT.currentTime - self.init_t
+        cur_t = time() - self.init_t
         
-        print('run m2 vols {} {} {}'.format(vols[0].value, vols[1].value, vols[2].value))
+        # print('run m2 vols {} {} {}'.format(vols[0].value, vols[1].value, vols[2].value))
         if (cur_t % SYNC_INTERVAL) < self.last_sync: # sync each track every 5 seconds
             self.tracks[i]['f'] = floor(cur_t * 44100.0) % self.tracks[i]['l']
             print(i, 'repos', floor(cur_t * 44100.0) % self.tracks[i]['l'])

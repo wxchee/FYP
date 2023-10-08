@@ -25,12 +25,12 @@ Specify command usages in the scripts.sh file:
   <USERPROFILE>/Documents/fyp/bin/scripts.sh
 
 This is a temporary bash command setup for final year project workflow.
-All commands are executed with the leading keyword "fyp".
+All commands are executed with the leading command name "fyp".
 Command will be removed upon the completion of the project for housekeeping purpose.
 
 To remove the entire fyp <command> series:
 remove the config line under
-  <USERPROFILE>/.bash_profile
+  <USERPROFILE>/.bashrc
 
 ''';
 

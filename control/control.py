@@ -1,6 +1,5 @@
 # control 
 # - monitor accelerometer magnitude, if acc magnitude exceed threshold, increment to next mode
-
 from time import sleep
 from multiprocessing import Process
 
@@ -11,64 +10,42 @@ from PlayMode3 import PlayMode3
 from PlayMode4 import PlayMode4
 
 
-
 def run():
-    print('start control')
-    
-    modeIndex = 0
-
-    runModes = [
-        PlayMode1,
-        PlayMode2,
-        PlayMode3,
-        PlayMode4,
-    ]
-    modeCount = len(runModes)
-
+    pmIndex = 0
+    playModes = [ PlayMode1, PlayMode2, PlayMode3, PlayMode4 ]
+    noOfModes = len(playModes)
 
     # initialise the first process
-    activeMode = runModes[modeIndex]()
-    activeMode.start()
-
-    activeModeP = Process(target=activeMode.run)
-    activeModeP.start()
+    playMode = playModes[pmIndex]()
+    playModeProcess = Process(target=playMode.run)
+    playMode.start()
+    playModeProcess.start()
 
     while True:
         try:
-            if aMag.value > 2: # trigger mode switching
-                aMag.value = 0
+            if aMag.value > 2: # trigger play mode switching
 
-                activeMode.stop() # close all outstream associated with this play mode
+                # stop the current play mode and terminate its respective process
+                playMode.stop()
+                playModeProcess.terminate()
 
-                activeModeP.terminate() # terminate current Music Process
-                # print('current run process terminates')
-                
-                activeModeP = None
-                activeMode = None  # free memory from current Music instance
-                
-                # print('wait for current active music to release outstream')
-                # sleep(1) #
-                # print('done')
+                # increment play mode index to the next one
+                pmIndex = (pmIndex + 1) % noOfModes
 
-                modeIndex = (modeIndex + 1) % modeCount
-
-                activeMode = runModes[modeIndex]() # initialise new Music instance
+                # instantiate new play mode and its process
+                playMode = playModes[pmIndex]()
+                playModeProcess = Process(target=playMode.run)
                 
-                activeModeP = Process(target=activeMode.run)
-                
-                print('mode switch to {}'.format(modeIndex))
+                print('mode switch to {}...'.format(pmIndex))
                 sleep(1) # give a buffer for subsequent switch motion, to prevent wrong triggered due to inertia
                 
-                # print('sleep done')
-                activeMode.start()
-                # print('start instance')
-                activeModeP.start()
-
-                print('start play mode ', modeIndex)
+                # start running the new play mode process
+                playMode.start()
+                playModeProcess.start()
+                print('play mode ', pmIndex, ' is ready.')
 
         except KeyboardInterrupt:
                 print("stop music thread.")
-        
         
         sleep(0.02)
         

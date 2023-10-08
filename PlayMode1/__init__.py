@@ -144,7 +144,7 @@ class PlayMode1:
         pi = ni = 0
 
         while True:
-            print('run m1')
+            # print('run m1')
             if curSecond >= 1000:
                 curSecond = 0
                 if pi == len(PATTERN1["pattern"]) - 1:

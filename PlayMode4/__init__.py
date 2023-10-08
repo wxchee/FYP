@@ -121,6 +121,6 @@ class PlayMode4:
                 ds[aDir.value][start_frame:end_frame] = self.streams[aDir.value].d0
 
                 sd.play(self.streams[aDir.value].d0, SAMPLE_RATE_M3)
-                sleep(0.5)
+                sleep(0.25)
             
             sleep(0.01)

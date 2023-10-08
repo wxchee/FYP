@@ -50,6 +50,6 @@ class PlayMode3:
             if aDir.value > 0 and rotMag.value > rotMagTh:
                 print('play ', aDir.value)
                 sd.play(self.ds0[aDir.value], SAMPLE_RATE_M3)
-                sleep(0.5)
+                sleep(0.25)
         
             sleep(0.001)
