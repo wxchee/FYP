@@ -34,7 +34,7 @@ class PlayMode4:
         for i, file in enumerate(AUDIO_FILES):
             wav, sr = sf.read(file)
             trimmedWav = wav
-            print('load', i, len(wav), sr)
+            # print('load', i, len(wav), sr)
             if len(wav) < SLOT_SIZE:
                 padOffset = SLOT_SIZE - len(wav)
                 trimmedWav = np.concatenate((wav, np.zeros(padOffset)))
@@ -106,7 +106,7 @@ class PlayMode4:
         init_t.value = time()
 
         while True:
-            if self.getRotMag() > rotMagTh:
+            if getRotMag() > rotMagTh:
                 cur_f = ((time() - init_t.value) * SAMPLE_RATE_M3) % PERIOD
                 target_slot_d = cur_f / SLOT_SIZE
                 th = target_slot_d - int(target_slot_d)

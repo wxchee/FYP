@@ -2,7 +2,7 @@ import numpy as np
 from time import sleep
 import soundfile as sf
 
-from shared import rotMag, getRotMag, aDir
+from shared import getRotMag, aDir
 
 AUDIO_FILES = [
     'audios/music3_acoustic/0_africanclave.wav',
@@ -53,7 +53,7 @@ class PlayMode3:
                     print('\nnow align with ', aDir.value, '\n')
                 curDir = aDir.value
             
-            if self.getRotMag() > rotMagTh:
+            if getRotMag() > rotMagTh:
                 print('play ', aDir.value)
                 sd.play(self.ds0[aDir.value], SAMPLE_RATE_M3)
                 sleep(0.25)

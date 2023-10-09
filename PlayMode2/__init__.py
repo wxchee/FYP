@@ -5,7 +5,7 @@ from time import time, sleep
 from math import ceil, floor
 from multiprocessing import Value
 
-from shared import aX, aY, aZ, rotMag
+from shared import aX, aY, aZ, rotMag3D
 
 AUDIO_FILES = [
     'audios/music2/track_drum.wav',
@@ -119,8 +119,8 @@ class PlayMode2:
 
     def run(self):
         while True:
-            print(rotMag.value)
-            if rotMag.value > 1.8:
+            # print(rotMag3D.value)
+            if rotMag3D.value > 1.8:
                 vols[0].value = vols[1].value = vols[2].value = 1
             else:
                 vols[0].value = 2 if abs(aX.value) > 0.5 else 0

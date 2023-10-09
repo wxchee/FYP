@@ -1,6 +1,6 @@
 import numpy as np
 from math import sqrt
-from shared import rotMag, rX, rY, rZ, aMag, aDir, aX, aY, aZ
+from shared import rotMag3D, rX, rY, rZ, aMag, aDir, aX, aY, aZ
 
 class Sensor:
     def __init__(self):
@@ -30,7 +30,7 @@ class Sensor:
                 if len(self._rotMagList) > 4:
                     self._rotMagList.pop(0)
 
-                rotMag.value = min(10, sum(self._rotMagList) / len(self._rotMagList))
+                rotMag3D.value = min(10, sum(self._rotMagList) / len(self._rotMagList))
                 
 
                 # update acceleration data
