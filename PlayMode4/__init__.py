@@ -4,7 +4,7 @@ from time import time, sleep
 import math
 from multiprocessing import Array, Value
 
-from shared import rotMag, aDir
+from shared import getRotMag, aDir
 from PlayMode4.stream import Stream
 from PlayMode3 import AUDIO_FILES, SLOT_SIZE, SAMPLE_RATE_M3, rotMagTh
 
@@ -106,7 +106,7 @@ class PlayMode4:
         init_t.value = time()
 
         while True:
-            if aDir.value > 0 and rotMag.value > rotMagTh:
+            if self.getRotMag() > rotMagTh:
                 cur_f = ((time() - init_t.value) * SAMPLE_RATE_M3) % PERIOD
                 target_slot_d = cur_f / SLOT_SIZE
                 th = target_slot_d - int(target_slot_d)

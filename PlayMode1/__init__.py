@@ -143,9 +143,9 @@ class PlayMode1:
         curSecond = 0
         pi = ni = 0
 
+        MIN_PERIOD = 500
         while True:
-            # print('run m1')
-            if curSecond >= 1000:
+            if curSecond >= MIN_PERIOD:
                 curSecond = 0
                 if pi == len(PATTERN1["pattern"]) - 1:
                     ni = (ni + 1) % len(PATTERN1["notes"])
@@ -154,14 +154,17 @@ class PlayMode1:
 
                 goalFreq.value = NOTES[PATTERN1["notes"][ni] + PATTERN1["pattern"][pi]]
 
+            rot = max(0, rotMag.value - 0.8)
 
-            goalAmp.value = min(1, max(0, (rotMag.value - 0.03)) / 2)
-
-            dt = (time() - prevT) * 1000 * rotMag.value / 0.5
-            curSecond += dt
+            goalAmp.value = min(2, rot)
+            
+            dt = (time() - prevT) * rot * 2200
+            
+            curSecond += 0 if dt < 4 else dt
+            # print('amp', goalAmp.value, 'dt', dt)
             prevT = time()
 
-            sleep(0.1)
+            sleep(0.01)
 
     def stop(self):
         self.outstream.close()

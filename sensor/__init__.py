@@ -1,6 +1,6 @@
 import numpy as np
 from math import sqrt
-from shared import rotMag, aMag, aDir, aX, aY, aZ
+from shared import rotMag, rX, rY, rZ, aMag, aDir, aX, aY, aZ
 
 class Sensor:
     def __init__(self):
@@ -19,8 +19,12 @@ class Sensor:
         if self._sense != None:
             while True:
                 # update rotation data
-                gX, gY, gZ = self._sense.get_gyroscope_raw().values()
-                newRotMag = sqrt(gX*gX + gY*gY + gZ*gZ) ** (1/3)
+                rXRaw, rYRaw, rZRaw = self._sense.get_gyroscope_raw().values()
+                rX.value = round(rXRaw, 3)
+                rY.value = round(rYRaw, 3)
+                rZ.value = round(rZRaw, 3)
+
+                newRotMag = sqrt(rXRaw*rXRaw + rYRaw*rYRaw + rZRaw*rZRaw) ** (1/3)
                 self._rotMagList.append(newRotMag)
 
                 if len(self._rotMagList) > 4:

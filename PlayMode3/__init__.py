@@ -2,7 +2,7 @@ import numpy as np
 from time import sleep
 import soundfile as sf
 
-from shared import rotMag, aDir
+from shared import rotMag, getRotMag, aDir
 
 AUDIO_FILES = [
     'audios/music3_acoustic/0_africanclave.wav',
@@ -17,7 +17,7 @@ AUDIO_FILES = [
 SAMPLE_RATE_M3 = 44100
 SLOT_SIZE = 10000
 
-rotMagTh = 5.5
+rotMagTh = 8
 
 class PlayMode3:
     def __init__(self):
@@ -35,7 +35,6 @@ class PlayMode3:
                 print(i, 'exceed 8000')
             
             self.ds0.append(trimmedWav)
-    
 
     def start(self):
         pass
@@ -45,9 +44,16 @@ class PlayMode3:
 
     def run(self):
         import sounddevice as sd
-
+        curDir = -1
         while True:
-            if aDir.value > 0 and rotMag.value > rotMagTh:
+            if curDir != aDir.value:
+                if aDir.value < 0:
+                    print('\nnot align with any axis.\n')
+                else:
+                    print('\nnow align with ', aDir.value, '\n')
+                curDir = aDir.value
+            
+            if self.getRotMag() > rotMagTh:
                 print('play ', aDir.value)
                 sd.play(self.ds0[aDir.value], SAMPLE_RATE_M3)
                 sleep(0.25)

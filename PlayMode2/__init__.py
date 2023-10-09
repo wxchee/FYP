@@ -119,12 +119,13 @@ class PlayMode2:
 
     def run(self):
         while True:
-            if rotMag.value > 4:
+            print(rotMag.value)
+            if rotMag.value > 1.8:
                 vols[0].value = vols[1].value = vols[2].value = 1
             else:
-                vols[0].value = 1 if abs(aX.value) > 0.5 else 0
-                vols[1].value = 1 if abs(aY.value) > 0.5 else 0
-                vols[2].value = 1 if abs(aZ.value) > 0.5 else 0
+                vols[0].value = 2 if abs(aX.value) > 0.5 else 0
+                vols[1].value = 2 if abs(aY.value) > 0.5 else 0
+                vols[2].value = 2 if abs(aZ.value) > 0.5 else 0
             
             sleep(0.05)
     
