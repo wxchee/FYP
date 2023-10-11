@@ -63,8 +63,4 @@ def get_crossfade_filter(frames) -> np.array:
     )
 
 def get_wave_by_freq(freq=C_Major[0], amp=1, times=0) -> np.array:
-    # dt = 1 if len(times) < 2 else times[1] - times[0]
-    # print(np.full((len(times),), freq))
-    # phase_array = np.cumsum(np.full((len(times),), freq) * dt)
-    # return amp * np.sin(2 * np.pi * phase_array)
     return amp * np.cos(2*np.pi*freq*times)

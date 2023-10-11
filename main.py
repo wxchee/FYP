@@ -1,6 +1,6 @@
 from sensor import Sensor
 from multiprocessing import Process, cpu_count
-from control import control
+import control
 # from shared import log
 
 class MusicalBall:

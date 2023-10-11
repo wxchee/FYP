@@ -41,12 +41,23 @@ class Sensor:
                 aZ.value = round(aZRaw, 1)
 
                 i = -1
-                if abs(aXRaw) > 0.9:
-                    i = 1 if aXRaw < 0 else 2
-                elif abs(aYRaw) > 0.9:
-                    i = 3 if aYRaw < 0 else 4
-                elif abs(aZRaw) > 0.9:
-                    i = 5 if aZRaw < 0 else 6
+                maxAxis = [abs(aXRaw), abs(aYRaw), abs(aZRaw)]
+                g1, g2, s = sorted(maxAxis, reverse=True)
+                maxI = maxAxis.index(g1)
+
+                if g1 > 0.85:
+                    if maxI == 0:
+                        i = 1 if aXRaw < 0 else 2
+                    elif maxI == 1:
+                        i = 3 if aYRaw < 0 else 4
+                    elif maxI == 2:
+                        i = 5 if aZRaw < 0 else 6
+                # if abs(aXRaw) > 0.9:
+                #     i = 1 if aXRaw < 0 else 2
+                # elif abs(aYRaw) > 0.9:
+                #     i = 3 if aYRaw < 0 else 4
+                # elif abs(aZRaw) > 0.9:
+                #     i = 5 if aZRaw < 0 else 6
                 
                 aDir.value = i
 

@@ -123,9 +123,9 @@ class PlayMode2:
             if rotMag3D.value > 1.8:
                 vols[0].value = vols[1].value = vols[2].value = 1
             else:
-                vols[0].value = 2 if abs(aX.value) > 0.5 else 0
-                vols[1].value = 2 if abs(aY.value) > 0.5 else 0
-                vols[2].value = 2 if abs(aZ.value) > 0.5 else 0
+                vols[0].value = 2 if abs(aX.value) > 0.45 else 0
+                vols[1].value = 2 if abs(aY.value) > 0.45 else 0
+                vols[2].value = 2 if abs(aZ.value) > 0.45 else 0
             
             sleep(0.05)
     
