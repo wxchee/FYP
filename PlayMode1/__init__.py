@@ -3,7 +3,7 @@ import numpy as np
 import sys
 from multiprocessing import Value
 
-from shared import rotMag3D
+from shared import rotMag
 from PlayMode1.tools import get_wave_by_freq, get_time_array, get_crossfade_filter, C_Major, STREAM_STATE, PATTERN1, NOTES
 
 
@@ -154,14 +154,14 @@ class PlayMode1:
 
                 goalFreq.value = NOTES[PATTERN1["notes"][ni] + PATTERN1["pattern"][pi]]
 
-            rot = max(0, rotMag3D.value - 0.8)
+            rot = max(0, rotMag.value - 0.8)
 
             goalAmp.value = min(2, rot)
             
             dt = (time() - prevT) * rot * 2200
             
             curSecond += 0 if dt < 4 else dt
-            # print('amp', goalAmp.value, 'dt', dt)
+            
             prevT = time()
 
             sleep(0.01)

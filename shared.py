@@ -6,7 +6,7 @@ aX = Value('d', 0.0)
 aY = Value('d', 0.0)
 aZ = Value('d', 0.0)
 
-rotMag3D = Value('d', 0.0)
+rotMag = Value('d', 0.0)
 rX = Value('d', 0.0)
 rY = Value('d', 0.0)
 rZ = Value('d', 0.0)

@@ -18,7 +18,6 @@ Usage:
   
   fyp deploy                transfer code to remote RPi'\''s project directory
   fyp run                   start main program and remote client sequentially
-  fyp stop                  stop remote client
     
 
 Specify command usages in the scripts.sh file:

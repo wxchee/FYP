@@ -63,4 +63,5 @@ def get_crossfade_filter(frames) -> np.array:
     )
 
 def get_wave_by_freq(freq=C_Major[0], amp=1, times=0) -> np.array:
-    return amp * np.cos(2*np.pi*freq*times)
+    return amp * np.sin(2*np.pi*freq*times)
+

@@ -36,6 +36,7 @@ def run():
     playMode.start()
     playModeProcess.start()
 
+    # play "Play mode 1" voice 
     wav, sr = pmWav[pmIndex]
     sd.play(wav, sr, blocking=True)
     sleep(1)
@@ -60,12 +61,13 @@ def run():
                 playModeProcess = Process(target=playMode.run)
                 
                 print('mode switch to {}...'.format(pmIndex+1))
-                sleep(1) # give a buffer for subsequent switch motion, to prevent wrong triggered due to inertia
+                sleep(1)
                 
                 # start running the new play mode process
                 playMode.start()
                 playModeProcess.start()
-
+                
+                # play the next mode indicator voice
                 wav, sr = pmWav[pmIndex]
                 sd.play(wav, sr, blocking=True)
                 

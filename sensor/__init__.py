@@ -1,11 +1,11 @@
 import numpy as np
 from math import sqrt
-from shared import rotMag3D, rX, rY, rZ, aMag, aDir, aX, aY, aZ
+from shared import rotMag, rX, rY, rZ, aMag, aDir, aX, aY, aZ
 
 class Sensor:
     def __init__(self):
         self._sense = None
-        self._rotMagList = []
+        self._rotMagPool = []
         
         try:
             from sense_hat import SenseHat
@@ -25,12 +25,12 @@ class Sensor:
                 rZ.value = round(rZRaw, 3)
 
                 newRotMag = sqrt(rXRaw*rXRaw + rYRaw*rYRaw + rZRaw*rZRaw) ** (1/3)
-                self._rotMagList.append(newRotMag)
+                self._rotMagPool.append(newRotMag)
 
-                if len(self._rotMagList) > 4:
-                    self._rotMagList.pop(0)
+                if len(self._rotMagPool) > 4:
+                    self._rotMagPool.pop(0)
 
-                rotMag3D.value = min(10, sum(self._rotMagList) / len(self._rotMagList))
+                rotMag.value = min(10, sum(self._rotMagPool) / len(self._rotMagPool))
                 
 
                 # update acceleration data
@@ -52,12 +52,6 @@ class Sensor:
                         i = 3 if aYRaw < 0 else 4
                     elif maxI == 2:
                         i = 5 if aZRaw < 0 else 6
-                # if abs(aXRaw) > 0.9:
-                #     i = 1 if aXRaw < 0 else 2
-                # elif abs(aYRaw) > 0.9:
-                #     i = 3 if aYRaw < 0 else 4
-                # elif abs(aZRaw) > 0.9:
-                #     i = 5 if aZRaw < 0 else 6
                 
                 aDir.value = i
 
